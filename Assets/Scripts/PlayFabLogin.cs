@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class PlayFabLogin : MonoBehaviour
 {
+    [SerializeField] private Image _loading;
     private string _username;
     private string _mail;
     private string _pass;
@@ -63,7 +64,7 @@ public class PlayFabLogin : MonoBehaviour
     {
         if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
         {
-            PlayFabSettings.staticSettings.TitleId = "A823B";
+            PlayFabSettings.staticSettings.TitleId = "5EE75";
             Debug.Log("Title ID was installed");
         }
 
@@ -72,15 +73,18 @@ public class PlayFabLogin : MonoBehaviour
         var id = PlayerPrefs.GetString(AuthKey, Guid.NewGuid().ToString());
         Debug.Log($"id = {id}");
         var request = new LoginWithCustomIDRequest {CustomId = id, CreateAccount = needCreation};
+        _loading.color = Color.red;
         PlayFabClientAPI.LoginWithCustomID(request, reuslt =>
         {
+            _loading.color = Color.yellow;
             PlayerPrefs.SetString(AuthKey, id);
             SceneManager.LoadScene("MainProfile");
         }, OnLoginFailure);
     }
-
+    
     private void OnLoginFailure(PlayFabError error)
     {
+        _loading.color = Color.magenta;
         Debug.LogError($"Fail: {error}");
     }
 }

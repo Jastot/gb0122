@@ -17,8 +17,8 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     private void Start()
     {
         _buttonCondition = true;
-        _textMeshProUGUI.color = Color.magenta;
-        _buttonText = _button.GetComponentInChildren<TextMeshProUGUI>();
+        //_textMeshProUGUI.color = Color.magenta;
+        //_buttonText = _button.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     public void ButtonShifter()
