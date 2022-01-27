@@ -1,0 +1,19 @@
+﻿{
+  "CatalogVersion": "1.0",
+  "Catalog": [
+    {
+      "ItemId": "",
+      "CatalogVersion": "1.0",
+      "VirtualCurrencyPrices": {
+        "GD": 10
+      }
+    },
+    {
+      "ItemId": "",
+      "CatalogVersion": "1.0",
+      "VirtualCurrencyPrices": {
+        "GD": 10
+      }
+    }
+  ]
+}

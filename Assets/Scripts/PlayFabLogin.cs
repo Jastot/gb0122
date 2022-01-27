@@ -1,18 +1,21 @@
 using PlayFab;
 using PlayFab.ClientModels;
-using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayFabLogin : MonoBehaviour
 {
-    [SerializeField] private Image _loading;
+    [SerializeField] private Text loginErrorLabel;
+    [SerializeField] private Text createAccountErrorLabel;
+    
     private string _username;
     private string _mail;
     private string _pass;
 
-    private const string AuthKey = "player-unique-id";
+    private const string PlayFabUsernameForAuthKey = "playfab-username-for-auth-key";
+    private const string PlayFabPasswordForAuthKey = "playfab-password-for-auth-key";
+    
     public void UpdateUsername(string username)
     {
         _username = username;
@@ -36,55 +39,59 @@ public class PlayFabLogin : MonoBehaviour
             Email = _mail,
             Password = _pass,
             RequireBothUsernameAndEmail = true
-        }, result =>
+        }, _ =>
         {
-            Debug.Log("Success");
-        }, errorCallback => {
-            Debug.LogError($"Error: {errorCallback}");
-        });
+            Debug.Log($"Create Account Success: {_.PlayFabId}");
+            RememberCredentials(_username, _pass);
+            SceneManager.LoadScene("MainProfile");
+        }, OnFailure);
     }
 
     public void Login()
     {
-        
         PlayFabClientAPI.LoginWithPlayFab(new LoginWithPlayFabRequest
         {
             Username = _username,
             Password = _pass
         }, result =>
         {
-            
-            Debug.Log($"Success: {_username}");
-        }, errorCallback => {
-            Debug.LogError($"Error: {errorCallback}");
-        });
+            Debug.Log($"Login Success: {result.PlayFabId}");
+            RememberCredentials(_username, _pass);
+            SceneManager.LoadScene("MainProfile");
+        }, OnFailure);
     }
 
     private void Start()
     {
         if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
         {
-            PlayFabSettings.staticSettings.TitleId = "5EE75";
+            PlayFabSettings.staticSettings.TitleId = "A823B";
             Debug.Log("Title ID was installed");
         }
 
-        var needCreation = !PlayerPrefs.HasKey(AuthKey);
-        Debug.Log($"needCreation = {needCreation}");
-        var id = PlayerPrefs.GetString(AuthKey, Guid.NewGuid().ToString());
-        Debug.Log($"id = {id}");
-        var request = new LoginWithCustomIDRequest {CustomId = id, CreateAccount = needCreation};
-        _loading.color = Color.red;
-        PlayFabClientAPI.LoginWithCustomID(request, reuslt =>
+        if (PlayerPrefs.HasKey(PlayFabUsernameForAuthKey) && PlayerPrefs.HasKey(PlayFabPasswordForAuthKey))
         {
-            _loading.color = Color.yellow;
-            PlayerPrefs.SetString(AuthKey, id);
-            SceneManager.LoadScene("MainProfile");
-        }, OnLoginFailure);
+            PlayFabClientAPI.LoginWithPlayFab(new LoginWithPlayFabRequest
+            {
+                Username = PlayerPrefs.GetString(PlayFabUsernameForAuthKey),
+                Password = PlayerPrefs.GetString(PlayFabPasswordForAuthKey)
+            }, result =>
+            {
+                Debug.Log($"Login Success: {result.PlayFabId}");
+                SceneManager.LoadScene("MainProfile");
+            }, OnFailure);
+        }
     }
-    
-    private void OnLoginFailure(PlayFabError error)
+
+    private void OnFailure(PlayFabError error)
     {
-        _loading.color = Color.magenta;
-        Debug.LogError($"Fail: {error}");
+        loginErrorLabel.text = error.GenerateErrorReport();
+        createAccountErrorLabel.text = error.GenerateErrorReport();
+    }
+
+    private void RememberCredentials(string username, string pass)
+    {
+        PlayerPrefs.SetString(PlayFabUsernameForAuthKey, username);
+        PlayerPrefs.SetString(PlayFabPasswordForAuthKey, pass);
     }
 }
