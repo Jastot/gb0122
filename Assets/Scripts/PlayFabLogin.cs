@@ -65,7 +65,7 @@ public class PlayFabLogin : MonoBehaviour
     {
         if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
         {
-            PlayFabSettings.staticSettings.TitleId = "A823B";
+            PlayFabSettings.staticSettings.TitleId = "5EE75";
             Debug.Log("Title ID was installed");
         }
 

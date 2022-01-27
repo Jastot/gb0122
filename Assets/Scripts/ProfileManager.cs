@@ -1,41 +1,36 @@
 using PlayFab;
 using PlayFab.ClientModels;
-using System.Collections;
-using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ProfileManager : MonoBehaviour
 {
-    [SerializeField] private Text _id;
+    [SerializeField] private Text welcomeLabel;
+    [SerializeField] private Text createdLabel;
+    [SerializeField] private Text errorLabel;
 
-    [SerializeField] private Image _loading;
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        _loading.color = Color.yellow;
         PlayFabClientAPI.GetAccountInfo(new GetAccountInfoRequest(), success =>
         {
-            _id.text = $"Welcome back, Player 'LOST NAME' \n " +
-                       $"With ID {success.AccountInfo.PlayFabId} \n " +
-                       $"Created: {success.AccountInfo.Created}";
-            _loading.color = Color.green;
-        }, errorCallback =>
+            welcomeLabel.text = $"Welcome back, {success.AccountInfo.Username}";
+            createdLabel.text = $"Profile was created at {success.AccountInfo.Created.ToString(CultureInfo.CurrentCulture)}";
+        }, error =>
         {
-            _loading.color = Color.red;
+            errorLabel.text = error.GenerateErrorReport();
         });
     }
-
-    public void LogOutAndForget()
+    
+    public void ClearCredentials()
     {
         PlayerPrefs.DeleteAll();
         SceneManager.LoadScene("Bootstrap");
     }
     
-    // Update is called once per frame
-    void Update()
+    public void PlayBattle()
     {
-        
+        SceneManager.LoadScene("ExampleScene");
     }
 }
