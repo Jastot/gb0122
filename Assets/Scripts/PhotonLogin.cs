@@ -1,14 +1,14 @@
 using Photon.Pun;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PhotonLogin : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private TextMeshProUGUI _textMeshProUGUI;
-    [SerializeField] private Button _button;
-    private bool _buttonCondition;
-    private TextMeshProUGUI _buttonText;
+    private string _roomName;
+
+    [SerializeField] private GameObject playerList;
+    [SerializeField] private GameObject createRoomPanel;
+    [SerializeField] private PlayersElement element;
+    
     private void Awake()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
@@ -16,20 +16,10 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        _buttonCondition = true;
-        //_textMeshProUGUI.color = Color.magenta;
-        //_buttonText = _button.GetComponentInChildren<TextMeshProUGUI>();
+        Connect();
     }
 
-    public void ButtonShifter()
-    {
-        if (_buttonCondition)
-            Connect();
-        else
-            Disconnect();
-    }
-    
-    private void Connect()
+    public void Connect()
     {
         if (PhotonNetwork.IsConnected)
         {
@@ -39,35 +29,46 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.ConnectUsingSettings();
         }
-        SetConditionAndShowInfo();
     }
 
-    private void Disconnect()
-    {
-        if (PhotonNetwork.IsConnected)
-            PhotonNetwork.Disconnect();
-        SetConditionAndShowInfo();
-    }
-
-    private void SetConditionAndShowInfo()
-    {
-        if (_buttonCondition)
-        {
-            _textMeshProUGUI.text = "Connect";
-            _buttonText.text = "Log out";
-            _buttonCondition = false;
-        }
-        else
-        {
-            _textMeshProUGUI.text = "Disconnect";
-            _buttonText.text = "Log in";
-            _buttonCondition = true;
-        }
-    }
-    
     public override void OnConnectedToMaster()
     {
         base.OnConnectedToMaster();
-        Debug.Log("Photon Success");
+        PhotonNetwork.JoinRandomRoom();
+    }
+
+    public void UpdateRoomName(string roomName)
+    {
+        _roomName = roomName;
+    }
+    
+    public void OnCreateRoomButtonClicked()
+    {
+        PhotonNetwork.CreateRoom(_roomName);
+    }
+    
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        Debug.LogError($"Room creation failed {message}");
+    }
+
+    public override void OnJoinedRoom()
+    {
+        createRoomPanel.SetActive(false);
+        playerList.SetActive(true);
+        foreach (var p in PhotonNetwork.PlayerList)
+        {
+            var newElement = Instantiate(element, element.transform.parent);
+            newElement.gameObject.SetActive(true);
+            newElement.SetItem(p);
+        }
+    }
+    
+    public void OnStartGameButtonClicked()
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+
+        PhotonNetwork.LoadLevel("ExampleScene");
     }
 }

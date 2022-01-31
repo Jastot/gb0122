@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class PlayFabLogin : MonoBehaviour
 {
+    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject loadingPanel;
     [SerializeField] private Text loginErrorLabel;
     [SerializeField] private Text createAccountErrorLabel;
     
@@ -71,6 +73,7 @@ public class PlayFabLogin : MonoBehaviour
 
         if (PlayerPrefs.HasKey(PlayFabUsernameForAuthKey) && PlayerPrefs.HasKey(PlayFabPasswordForAuthKey))
         {
+            loadingPanel.SetActive(true);
             PlayFabClientAPI.LoginWithPlayFab(new LoginWithPlayFabRequest
             {
                 Username = PlayerPrefs.GetString(PlayFabUsernameForAuthKey),
@@ -80,6 +83,10 @@ public class PlayFabLogin : MonoBehaviour
                 Debug.Log($"Login Success: {result.PlayFabId}");
                 SceneManager.LoadScene("MainProfile");
             }, OnFailure);
+        }
+        else
+        {
+            optionsPanel.SetActive(true);
         }
     }
 
