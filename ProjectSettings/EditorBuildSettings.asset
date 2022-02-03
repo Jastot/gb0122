@@ -8,10 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Bootstrap.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
-    path: Assets/Scenes/MainProfile.unity
-    guid: 30f8509c428adff459821be47b97eab2
-  - enabled: 1
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
+  - enabled: 0
     path: Assets/Creator Kit - Beginner Code/Scenes/ExampleScene.unity
     guid: ff09c31ad1e1ae44c8a2939b67d1180f
+  - enabled: 1
+    path: Assets/Scenes/MainProfile.unity
+    guid: 3967a3bd60811d74bb85dafcead9e210
   m_configObjects: {}
