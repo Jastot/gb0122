@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Timers;
 using CreatorKitCode;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
 namespace CreatorKitCodeInternal {
-    public class CharacterControl : MonoBehaviour, 
+    public class CharacterControl : MonoBehaviourPun, 
         AnimationControllerDispatcher.IAttackFrameReceiver,
         AnimationControllerDispatcher.IFootstepFrameReceiver
     {
@@ -138,6 +139,11 @@ namespace CreatorKitCodeInternal {
         // Update is called once per frame
         void Update()
         {
+            if (!photonView.IsMine && PhotonNetwork.IsConnected)
+            {
+                return;
+            }
+            
             Vector3 pos = transform.position;
         
             if (m_IsKO)

@@ -1,30 +1,42 @@
-using System;
 using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CatalogManager : MonoBehaviour
 {
     [SerializeField] private CatalogItemsElement _element;
-    [SerializeField] private Transform parent;
     
     private readonly Dictionary<string, CatalogItem> _catalog = new Dictionary<string, CatalogItem>();
-    private int _clickCounter;
-    public event Action<CatalogItem> _buttonWasPressed;
-    
+
     private void Start()
     {
-        _clickCounter = 0;
-        PlayFabClientAPI.GetCatalogItems(new GetCatalogItemsRequest(), result =>
+        PlayFabClientAPI.GetStoreItems(new GetStoreItemsRequest
         {
-            //Debug.Log("Get Catalog Items Success");
-            HandleCatalog(result.Catalog);
-        }, error =>
+            StoreId = "items_store"
+        }, result =>
         {
-            //Debug.LogError($"Get Catalog Items Failed: {error}");
-        });
+            HandleStore(result.Store);
+        }, Debug.LogError);
+        
+        // PlayFabClientAPI.GetCatalogItems(new GetCatalogItemsRequest(), result =>
+        // {
+        //     Debug.Log("Get Catalog Items Success");
+        //     HandleCatalog(result.Catalog);
+        // }, error =>
+        // {
+        //     Debug.LogError($"Get Catalog Items Failed: {error}");
+        // });
+    }
+    
+    private void HandleStore(List<StoreItem> store)
+    {
+        foreach (var item in store)
+        {
+            var element = Instantiate(_element, _element.transform.parent);
+            element.gameObject.SetActive(true);
+            element.SetItem(item);
+        }
     }
 
     private void HandleCatalog(List<CatalogItem> catalog)
@@ -32,28 +44,10 @@ public class CatalogManager : MonoBehaviour
         foreach (var item in catalog)
         {
             _catalog.Add(item.ItemId, item);
-            //Debug.Log($"Item with ID {item.ItemId} was added to dictionary");
-            var element = Instantiate(_element, parent);
+            Debug.Log($"Item with ID {item.ItemId} was added to dictionary");
+            var element = Instantiate(_element, _element.transform.parent);
             element.gameObject.SetActive(true);
             element.SetItem(item);
-            //element.GetButton().onClick.AddListener(()=>ButtonWasPressed(item));
         }
-    }
-
-    private void ButtonWasPressed(CatalogItem catalogItem)
-    {
-        _buttonWasPressed.Invoke(catalogItem);
-    }
-    public void Filter()
-    {
-        var uiItems = FindObjectsOfType<CatalogItemsElement>(true);
-        foreach (var item in uiItems)
-        {
-            item.Filter(_clickCounter);
-        }
-        if (_clickCounter==3)
-            _clickCounter = 0;
-        else
-            _clickCounter++;
     }
 }

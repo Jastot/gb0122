@@ -1,3 +1,4 @@
+using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,45 +7,39 @@ public class CatalogItemsElement : MonoBehaviour
 {
     [SerializeField] private Text itemName;
     [SerializeField] private Text price;
-    [SerializeField] private Button _button;
-    private int keyType=-1;
 
-    public Button GetButton()
-    {
-        return _button;
-    }
+    private StoreItem _item;
+
     public void SetItem(CatalogItem item)
     {
         itemName.text = item.DisplayName;
-        if (item.VirtualCurrencyPrices.ContainsKey("GC"))
+        if (item.VirtualCurrencyPrices.ContainsKey("GD"))
         {
-            price.text = item.VirtualCurrencyPrices["GC"].ToString() + " GC";
-            keyType = 1;
-        }
-        if (item.VirtualCurrencyPrices.ContainsKey("FD"))
-        {
-            price.text = item.VirtualCurrencyPrices["FD"].ToString() + " FD";
-            keyType = 2;
-        }
-        if (item.VirtualCurrencyPrices.ContainsKey("RM"))
-        {
-            price.text = item.VirtualCurrencyPrices["RM"].ToString() + " $";
-            keyType = 3;
+            price.text = item.VirtualCurrencyPrices["GD"].ToString();
         }
     }
-
-    public void Filter(int key)
+    
+    public void SetItem(StoreItem item)
     {
-        if (key!=keyType)
+        itemName.text = item.ItemId;
+        if (item.VirtualCurrencyPrices.ContainsKey("GD"))
         {
-            if (key == 0 && key!=-1)
-                this.gameObject.SetActive(true);
-            else
-                this.gameObject.SetActive(false);
+            price.text = item.VirtualCurrencyPrices["GD"].ToString();
         }
-        else
+    }
+    
+    public void SetItem(ItemInstance item)
+    {
+        itemName.text = item.DisplayName;
+    }
+    
+    public void MakePurchase()
+    {
+        PlayFabClientAPI.PurchaseItem(new PurchaseItemRequest
         {
-            this.gameObject.SetActive(true);
-        }
+            ItemId = "sw_cnt_key",
+            Price = 10,
+            VirtualCurrency = "GD"
+        }, result => { }, Debug.LogError);
     }
 }

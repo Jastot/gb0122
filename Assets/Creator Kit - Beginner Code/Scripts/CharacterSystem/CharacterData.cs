@@ -1,5 +1,6 @@
 ﻿using System;
 using CreatorKitCodeInternal;
+using Photon.Pun;
 using UnityEngine;
 
 using Random = UnityEngine.Random;
@@ -10,7 +11,7 @@ namespace CreatorKitCode
     /// This defines a character in the game. The name Character is used in a loose sense, it just means something that
     /// can be attacked and have some stats including health. It could also be an inanimate object like a breakable box.
     /// </summary>
-    public class CharacterData : HighlightableObject
+    public class CharacterData : HighlightableObject, IPunObservable
     {
         public string CharacterName;
 
@@ -58,6 +59,18 @@ namespace CreatorKitCode
             Animator anim = GetComponentInChildren<Animator>();
             if(anim != null)
                 SceneLinkedSMB<CharacterData>.Initialise(anim, this);
+        }
+        
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(Stats.stats.health);
+            }
+            else
+            {
+                Stats.stats.health = (int)stream.ReceiveNext();
+            }
         }
 
         // Update is called once per frame

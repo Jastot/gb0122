@@ -1,36 +1,44 @@
+using System.Globalization;
 using PlayFab;
 using PlayFab.ClientModels;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ProfileManager : MonoBehaviour
 {
-    [SerializeField] private Text welcomeLabel;
-    [SerializeField] private Text createdLabel;
-    [SerializeField] private Text errorLabel;
+    [SerializeField] private Text nickname;
+    [SerializeField] private Text id;
+    [SerializeField] private Text created;
+    
+    private string _inputText;
 
     private void Start()
     {
-        PlayFabClientAPI.GetAccountInfo(new GetAccountInfoRequest(), success =>
+        PlayFabClientAPI.GetPlayerProfile(new GetPlayerProfileRequest(), success =>
         {
-            welcomeLabel.text = $"Welcome back, {success.AccountInfo.Username}";
-            createdLabel.text = $"Profile was created at {success.AccountInfo.Created.ToString(CultureInfo.CurrentCulture)}";
-        }, error =>
+            nickname.text = $"Player Name: {success.PlayerProfile.DisplayName}";
+            // id.text = $"Player ID: {success.AccountInfo.PlayFabId}";
+            // created.text = $"Creation time: {success.AccountInfo.Created.ToString(CultureInfo.CurrentCulture)}";
+        }, Debug.LogError);
+    }
+
+    public void UpdateInputFiled(string text)
+    {
+        _inputText = text;
+    }
+
+    public void SaveNicknameOnPlayFab()
+    {
+        PlayFabClientAPI.UpdateUserTitleDisplayName(new UpdateUserTitleDisplayNameRequest
         {
-            errorLabel.text = error.GenerateErrorReport();
-        });
+            DisplayName = _inputText
+        }, result => { }, Debug.LogError);
     }
     
     public void ClearCredentials()
     {
         PlayerPrefs.DeleteAll();
         SceneManager.LoadScene("Bootstrap");
-    }
-    
-    public void PlayBattle()
-    {
-        SceneManager.LoadScene("ExampleScene");
     }
 }

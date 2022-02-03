@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
 namespace CreatorKitCode 
@@ -9,7 +10,7 @@ namespace CreatorKitCode
     /// of setting the material parameters for it when it gets highlighted.
     /// If the object use another material, it will just ignore all the changes.
     /// </summary>
-    public class HighlightableObject : MonoBehaviour
+    public class HighlightableObject : MonoBehaviourPun
     {
         protected Renderer[] m_Renderers;
 

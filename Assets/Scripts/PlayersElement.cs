@@ -10,4 +10,9 @@ public class PlayersElement : MonoBehaviour
     {
         itemName.text = item.UserId;
     }
+    
+    public void SetItem(string roomName)
+    {
+        itemName.text = roomName;
+    }
 }
