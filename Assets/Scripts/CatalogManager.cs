@@ -19,11 +19,11 @@ public class CatalogManager : MonoBehaviour
         _clickCounter = 0;
         PlayFabClientAPI.GetCatalogItems(new GetCatalogItemsRequest(), result =>
         {
-            Debug.Log("Get Catalog Items Success");
+            //Debug.Log("Get Catalog Items Success");
             HandleCatalog(result.Catalog);
         }, error =>
         {
-            Debug.LogError($"Get Catalog Items Failed: {error}");
+            //Debug.LogError($"Get Catalog Items Failed: {error}");
         });
     }
 
@@ -32,11 +32,11 @@ public class CatalogManager : MonoBehaviour
         foreach (var item in catalog)
         {
             _catalog.Add(item.ItemId, item);
-            Debug.Log($"Item with ID {item.ItemId} was added to dictionary");
+            //Debug.Log($"Item with ID {item.ItemId} was added to dictionary");
             var element = Instantiate(_element, parent);
             element.gameObject.SetActive(true);
             element.SetItem(item);
-            element.GetButton().onClick.AddListener(()=>ButtonWasPressed(item));
+            //element.GetButton().onClick.AddListener(()=>ButtonWasPressed(item));
         }
     }
 

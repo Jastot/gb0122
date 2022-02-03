@@ -1,14 +1,22 @@
+using System;
+using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Realtime;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PhotonLogin : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private TextMeshProUGUI _textMeshProUGUI;
-    [SerializeField] private Button _button;
-    private bool _buttonCondition;
-    private TextMeshProUGUI _buttonText;
+    private string _roomName;
+
+    [SerializeField] private GameObject playerList;
+    [SerializeField] private GameObject createRoomPanel;
+    [SerializeField] private PlayersElement element;
+    [SerializeField] private LobbyElement _lobbyElement;
+    [SerializeField] private GameObject _roomList;
+    [SerializeField] private TMP_InputField _inputField;
+    private Dictionary<string, RoomInfo> cachedRoomList = new Dictionary<string, RoomInfo>();
+
     private void Awake()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
@@ -16,20 +24,10 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        _buttonCondition = true;
-        //_textMeshProUGUI.color = Color.magenta;
-        //_buttonText = _button.GetComponentInChildren<TextMeshProUGUI>();
+        Connect();
     }
 
-    public void ButtonShifter()
-    {
-        if (_buttonCondition)
-            Connect();
-        else
-            Disconnect();
-    }
-    
-    private void Connect()
+    public void Connect()
     {
         if (PhotonNetwork.IsConnected)
         {
@@ -39,35 +37,110 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.ConnectUsingSettings();
         }
-        SetConditionAndShowInfo();
     }
 
-    private void Disconnect()
+    public void UpdateRoomName(string roomName)
     {
-        if (PhotonNetwork.IsConnected)
-            PhotonNetwork.Disconnect();
-        SetConditionAndShowInfo();
+        _roomName = roomName;
     }
 
-    private void SetConditionAndShowInfo()
+    public void OnCreateRoomButtonClicked()
     {
-        if (_buttonCondition)
-        {
-            _textMeshProUGUI.text = "Connect";
-            _buttonText.text = "Log out";
-            _buttonCondition = false;
-        }
-        else
-        {
-            _textMeshProUGUI.text = "Disconnect";
-            _buttonText.text = "Log in";
-            _buttonCondition = true;
-        }
+        RoomOptions roomOptions = new RoomOptions(){ IsVisible = true, IsOpen = true};
+        PhotonNetwork.CreateRoom(_roomName,roomOptions);
     }
     
-    public override void OnConnectedToMaster()
+    public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        base.OnConnectedToMaster();
-        Debug.Log("Photon Success");
+        Debug.LogError($"Room creation failed {message}");
+    }
+
+    public override void OnJoinedRoom()
+    {
+        createRoomPanel.SetActive(false);
+        _roomList.SetActive(false);
+        playerList.SetActive(true);
+        foreach (var p in PhotonNetwork.PlayerList)
+        {
+            var newElement = Instantiate(element, element.transform.parent);
+            newElement.gameObject.SetActive(true);
+            newElement.SetItem(p);
+        }
+        
+    }
+
+    public void CloseOrOpenRoom(bool state)
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = state;
+    }
+    
+    public void OnStartGameButtonClicked()
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.LoadLevel("ExampleScene");
+    }
+    
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        cachedRoomList.Clear();
+        Debug.Log("OnRoomListUpdate");
+        ShowRooms(roomList);
+    }
+
+    public override void OnCreatedRoom()
+    {
+        base.OnCreatedRoom();
+    }
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("OnJoinedLobby");
+        cachedRoomList.Clear();
+    }
+    
+    public void ShowRooms(List<RoomInfo> roomList)
+    {
+        for(int i=0; i<roomList.Count; i++)
+        {
+            RoomInfo info = roomList[i];
+            if (info.RemovedFromList)
+            {
+                cachedRoomList.Remove(info.Name);
+            }
+            else
+            {
+                cachedRoomList[info.Name] = info;
+            }
+        }
+        foreach (var room in cachedRoomList.Values)
+        {
+            var newElement = Instantiate(_lobbyElement, _lobbyElement.transform.parent);
+            newElement.gameObject.SetActive(true);
+            newElement.SetItem(room.Name);
+            newElement.NeedToJoinRoom += JoinRoomByName;
+        }
+    }
+
+    private string _friendsRoomName;
+    
+    public void SetSearchName()
+    {
+        _friendsRoomName = _inputField.text;
+    }
+    
+    private void JoinRoomByName(string name)
+    {
+        PhotonNetwork.JoinRoom(name);
+    }
+
+    public void JoinRoomByName()
+    {
+        PhotonNetwork.JoinRoom(_friendsRoomName);
+    }
+    
+    public void CopyNameCurrentOfRoom()
+    {
+        GUIUtility.systemCopyBuffer = PhotonNetwork.CurrentRoom.Name;
     }
 }
