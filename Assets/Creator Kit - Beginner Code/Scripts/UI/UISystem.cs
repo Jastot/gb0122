@@ -1,7 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using CreatorKitCode;
+using Photon.Pun;
+using PlayFab;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace CreatorKitCodeInternal 
@@ -14,6 +17,7 @@ namespace CreatorKitCodeInternal
         public static UISystem Instance { get; private set; }
     
         [Header("Player")]
+        public BattleResult result;
         public CharacterControl PlayerCharacter;
         public Slider PlayerHealthSlider;
         public Text MaxHealth;
@@ -44,6 +48,16 @@ namespace CreatorKitCodeInternal
 
         void Start()
         {
+            var players = FindObjectsOfType<CharacterControl>();
+            foreach (var player in players)
+            {
+                if (player.GetComponent<PhotonView>().IsMine)
+                {
+                    PlayerCharacter = player;
+                    break;
+                }
+            }
+            
             m_ClosedInventorySprite = ((Image)OpenInventoryButton.targetGraphic).sprite;
             m_OpenInventorySprite = OpenInventoryButton.spriteState.pressedSprite;
 
@@ -61,6 +75,11 @@ namespace CreatorKitCodeInternal
         // Update is called once per frame
         void Update()
         {
+            if (PlayerCharacter == null)
+            {
+                return;
+                
+            }
             UpdatePlayerUI();
         }
 
@@ -125,6 +144,10 @@ namespace CreatorKitCodeInternal
 
         public void ToggleInventory()
         {
+            result.AggregatedDamage = 1000;
+            SceneManager.LoadScene("Bootstrap");
+            return;
+            
             if (InventoryWindow.gameObject.activeSelf)
             {
                 ((Image)OpenInventoryButton.targetGraphic).sprite = m_ClosedInventorySprite;
