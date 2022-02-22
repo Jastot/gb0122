@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using CreatorKitCodeInternal;
 using Photon.Pun;
+using PlayFab;
+using PlayFab.ClientModels;
 using UnityEngine;
 
 using Random = UnityEngine.Random;
@@ -59,13 +62,18 @@ namespace CreatorKitCode
             Animator anim = GetComponentInChildren<Animator>();
             if(anim != null)
                 SceneLinkedSMB<CharacterData>.Initialise(anim, this);
+            
         }
+
+      
+        
         
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             if (stream.IsWriting)
             {
                 stream.SendNext(Stats.stats.health);
+                //SetHPFromPlayFab();
             }
             else
             {
@@ -76,12 +84,30 @@ namespace CreatorKitCode
         // Update is called once per frame
         void Update()
         {
+            // var characterControl = gameObject.transform.GetComponent<CharacterControl>();
+            // if (characterControl != null)
+            // {
+            //     if (characterControl.photonView.IsMine)
+            //     {
+            //         var UI = GameObject.FindObjectOfType<UISystem>();
+            //         UI.PlayerCharacter = characterControl;
+            //         PlayFabClientAPI.GetUserData(new GetUserDataRequest(), result =>
+            //             {
+            //                 GetHPFromPlayFab(result.Data);
+            //             },
+            //             Debug.LogError);
+            //         // PlayFabClientAPI.GetUserInventory(new GetUserInventoryRequest(), result => {
+            //         //     GetHPFromPlayFab(result.VirtualCurrency);
+            //         // }, Debug.LogError);
+            //     }
+            // }
             Stats.Tick();
 
             if (m_AttackCoolDown > 0.0f)
                 m_AttackCoolDown -= Time.deltaTime;
         }
 
+        
         /// <summary>
         /// Will check if that CharacterData can reach the given target with its currently equipped weapon. Will rarely
         /// be called, as the function CanAttackTarget will call this AND also check if the cooldown is finished.
