@@ -25,12 +25,12 @@ namespace DefaultNamespace
                     Debug.LogError($"GetUserDataRequest Failed: {error}");
                 }
                 );
-            _catalogManager._buttonWasPressed += BuySomeStaff;
+            //_catalogManager._buttonWasPressed += BuySomeStaff;
         }
 
         private void OnDestroy()
         {
-            _catalogManager._buttonWasPressed -= BuySomeStaff;
+            //_catalogManager._buttonWasPressed -= BuySomeStaff;
         }
 
         private void ShowBalance(Dictionary<string,int> balance)

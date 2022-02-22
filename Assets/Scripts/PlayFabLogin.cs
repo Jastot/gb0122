@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
@@ -59,6 +61,7 @@ public class PlayFabLogin : MonoBehaviour
         {
             Debug.Log($"Login Success: {result.PlayFabId}");
             RememberCredentials(_username, _pass);
+            OnLoginSuccess(result);
             SceneManager.LoadScene("MainProfile");
         }, OnFailure);
     }
@@ -81,6 +84,7 @@ public class PlayFabLogin : MonoBehaviour
             }, result =>
             {
                 Debug.Log($"Login Success: {result.PlayFabId}");
+                OnLoginSuccess(result);
                 SceneManager.LoadScene("MainProfile");
             }, OnFailure);
         }
@@ -100,5 +104,37 @@ public class PlayFabLogin : MonoBehaviour
     {
         PlayerPrefs.SetString(PlayFabUsernameForAuthKey, username);
         PlayerPrefs.SetString(PlayFabPasswordForAuthKey, pass);
+    }
+    
+    private void OnLoginSuccess(LoginResult result) {
+        //SetHPFromPlayFab();
+        GetHPFromPlayFab(result.PlayFabId);
+    }
+    public void SetHPFromPlayFab(int HP)
+    {
+        PlayFabClientAPI.UpdateUserData(new UpdateUserDataRequest() {
+                Data = new Dictionary<string, string>() {
+                    {"HP", HP.ToString()}
+                }
+            },
+            result => Debug.Log("Successfully updated user data"),
+            error => {
+                Debug.Log("Got error setting user data Ancestor to Arthur");
+                Debug.Log(error.GenerateErrorReport());
+            });
+    }
+    private void GetHPFromPlayFab(string myPlayFabeId)
+    {
+        PlayFabClientAPI.GetUserData(new GetUserDataRequest() {
+            PlayFabId = myPlayFabeId,
+            Keys = null
+        }, result => {
+            Debug.Log("Got user data:");
+            if (result.Data == null || !result.Data.ContainsKey("Ancestor")) Debug.Log("No Ancestor");
+            else Debug.Log("Ancestor: "+result.Data["HP"].Value);
+        }, (error) => {
+            Debug.Log("Got error retrieving user data:");
+            Debug.Log(error.GenerateErrorReport());
+        });
     }
 }
