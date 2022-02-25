@@ -187,7 +187,10 @@ namespace CreatorKitCodeInternal {
             if (m_CurrentTargetCharacterData != null)
             {
                 if (m_CurrentTargetCharacterData.Stats.CurrentHealth == 0)
+                {
+                    m_CurrentTargetCharacterData.DeathRattle -= GetExp;
                     m_CurrentTargetCharacterData = null;
+                }
                 else
                     CheckAttack();
             }
@@ -205,6 +208,8 @@ namespace CreatorKitCodeInternal {
 
                 if (m_CurrentState != State.ATTACKING)
                 {
+                    if (m_CurrentTargetCharacterData!=null)
+                        m_CurrentTargetCharacterData.DeathRattle -= GetExp;
                     m_CurrentTargetCharacterData = null;
                     m_TargetInteractable = null;
                 }
@@ -246,10 +251,18 @@ namespace CreatorKitCodeInternal {
             }
 
             m_Animator.SetFloat(m_SpeedParamID, m_Agent.velocity.magnitude / m_Agent.speed);
-        
+
+            if (CurrentTarget != null)
+                CurrentTarget.DeathRattle += GetExp;
+            
             //Keyboard shortcuts
             if(Input.GetKeyUp(KeyCode.I))
                 UISystem.Instance.ToggleInventory();
+        }
+
+        private void GetExp(float obj)
+        {
+            
         }
 
         void GoToRespawn()
@@ -260,7 +273,7 @@ namespace CreatorKitCodeInternal {
             m_Agent.isStopped = true;
             m_Agent.ResetPath();
             m_IsKO = false;
-
+            m_CurrentTargetCharacterData.DeathRattle -= GetExp;
             m_CurrentTargetCharacterData = null;
             m_TargetInteractable = null;
 

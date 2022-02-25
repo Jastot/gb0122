@@ -128,6 +128,19 @@ namespace CreatorKitCode
         /// </summary>
         /// <param name="useType">The type of sound (map to a specific mixer)</param>
         /// <param name="data">The PlayData that contains all the data of the sound to play (clip, volume, position etc.)</param>
+        public static AudioSource PlaySound(Use useType, PlayData data, bool loop)
+        {
+            var source = GetSource(useType);
+
+            source.clip = data.Clip;
+            source.gameObject.transform.position = data.Position;
+            source.pitch = Random.Range(data.PitchMin, data.PitchMax);
+            source.volume = data.Volume;
+            source.loop = loop;
+            source.Play();
+            return source;
+        }
+
         public static void PlaySound(Use useType, PlayData data)
         {
             var source = GetSource(useType);
@@ -136,10 +149,9 @@ namespace CreatorKitCode
             source.gameObject.transform.position = data.Position;
             source.pitch = Random.Range(data.PitchMin, data.PitchMax);
             source.volume = data.Volume;
-        
             source.Play();
         }
-
+        
         public static AudioClip GetDefaultSwingSound()
         {
             var clipArray = Instance.DefaultSwingSound;

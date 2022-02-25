@@ -183,7 +183,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.6356674, y: 1}
+    m_SensorSize: {x: 1.3574332, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2419,6 +2419,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &70389070
@@ -15617,6 +15618,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &415108486
@@ -21665,6 +21667,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1106785860, guid: 32695873568dfd149b83eaec94075c15, type: 3}
+      propertyPath: m_RootOrder
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 668073095967558993, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_IsActive
@@ -21730,6 +21736,11 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.745283
       objectReference: {fileID: 0}
+    - target: {fileID: 3229820843669844485, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_Alpha
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3405017171052252534, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_Color.r
@@ -21747,8 +21758,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5115311139328115066, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311139328115066, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311139328115067, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 5115311139583091574, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
@@ -21815,6 +21836,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5115311139633769822, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311139671255933, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5115311139700719335, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_IsActive
@@ -21843,12 +21874,27 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 5115311140117641432, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
+      propertyPath: StartGameUI
+      value: 
+      objectReference: {fileID: 554113881}
+    - target: {fileID: 5115311140117641432, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
       propertyPath: PlayerCharacter
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5115311140117641433, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311140117641437, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311140253566334, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5115311140253566335, guid: 32695873568dfd149b83eaec94075c15,
@@ -21870,6 +21916,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 0.8293727
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115311140672747409, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 5115311140908979499, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
@@ -23308,6 +23359,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 32695873568dfd149b83eaec94075c15, type: 3}
+--- !u!114 &554113880 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5115311140117641432, guid: 32695873568dfd149b83eaec94075c15,
+    type: 3}
+  m_PrefabInstance: {fileID: 554113879}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9991c49517b05f344be00140f51118db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &554113881 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3882421425800523370, guid: 32695873568dfd149b83eaec94075c15,
+    type: 3}
+  m_PrefabInstance: {fileID: 554113879}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cca71aefbbf648769f5ee4b9bdf7719f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &554210961 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4216859302048453862, guid: 572a037275ae6c040a92f6080e924aeb,
@@ -26584,6 +26659,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &613455127
@@ -33372,6 +33448,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!114 &775166170
@@ -34594,6 +34671,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &806258208
@@ -45602,6 +45680,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1055522268
@@ -46267,6 +46346,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1059361573
@@ -49455,6 +49535,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1149803696
@@ -52130,6 +52211,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1197289736
@@ -61818,6 +61900,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1395455706
@@ -63723,6 +63806,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1443302174
@@ -66511,6 +66595,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1508432497
@@ -68795,6 +68880,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1570900407}
   - component: {fileID: 1570900406}
+  - component: {fileID: 1570900408}
   m_Layer: 0
   m_Name: CharacterSpawner
   m_TagString: Untagged
@@ -68829,6 +68915,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 178.71701, z: 0}
+--- !u!114 &1570900408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1570900405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a94ce04294b4e74f8eb0aa4ee3c06c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _uiSystem: {fileID: 554113880}
+  result: {fileID: 11400000, guid: fac9bc3f438144264ae41ac87e6ce208, type: 2}
 --- !u!1001 &1571444420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -87540,6 +87640,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
+  howMuchExperienceNeedToGive: 300
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &2030677052

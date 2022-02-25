@@ -11,11 +11,12 @@ namespace CreatorKitCode
     /// This defines a character in the game. The name Character is used in a loose sense, it just means something that
     /// can be attacked and have some stats including health. It could also be an inanimate object like a breakable box.
     /// </summary>
-    public class CharacterData : HighlightableObject, IPunObservable
+    public class CharacterData : HighlightableObject, IPunObservable,ICanGiveExp
     {
         public string CharacterName;
 
         public StatSystem Stats;
+        public float howMuchExperienceNeedToGive = 300;
         /// <summary>
         /// The starting weapon equipped when the Character is created. Set through the Unity Editor.
         /// </summary>
@@ -108,6 +109,7 @@ namespace CreatorKitCode
         /// </summary>
         public void Death()
         {
+            GiveExpForPlayer();
             Stats.Death();
         }
 
@@ -166,6 +168,13 @@ namespace CreatorKitCode
             {
                 Stats.stats.health = (int)stream.ReceiveNext();
             }
+        }
+
+        public event Action<float> DeathRattle; 
+        
+        private void GiveExpForPlayer()
+        { 
+            DeathRattle?.Invoke(howMuchExperienceNeedToGive);
         }
     }
 }

@@ -1,6 +1,8 @@
-﻿using CreatorKitCode;
+﻿using System;
+using CreatorKitCode;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 namespace CreatorKitCodeInternal {
     public class SimpleEnemyController : MonoBehaviour, 
@@ -25,7 +27,6 @@ namespace CreatorKitCodeInternal {
         CharacterData m_CharacterData;
 
         CharacterAudio m_CharacterAudio;
-
         int m_SpeedAnimHash;
         int m_AttackAnimHash;
         int m_DeathAnimHash;
@@ -80,7 +81,6 @@ namespace CreatorKitCodeInternal {
             
                 if(m_LootSpawner != null)
                     m_LootSpawner.SpawnLoot();
-            
                 Destroy(m_Agent);
                 Destroy(GetComponent<Collider>());
                 Destroy(this);

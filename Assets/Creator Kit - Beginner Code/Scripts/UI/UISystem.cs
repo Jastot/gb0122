@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CreatorKitCode;
 using Photon.Pun;
 using PlayFab;
+using UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,7 +18,6 @@ namespace CreatorKitCodeInternal
         public static UISystem Instance { get; private set; }
     
         [Header("Player")]
-        public BattleResult result;
         public CharacterControl PlayerCharacter;
         public Slider PlayerHealthSlider;
         public Text MaxHealth;
@@ -25,11 +25,15 @@ namespace CreatorKitCodeInternal
         public EffectIconUI[] TimedModifierIcones;
         public Text StatsText;
 
+        [Header("GameStart")] 
+        public StartGameUI StartGameUI;
+        
         [Header("Enemy")]
         public Slider EnemyHealthSlider;
         public Text EnemyName;
         public EffectIconUI[] EnemyEffectIcones;
-    
+        public AudioClip FightClip;
+        
         [Header("Inventory")]
         public InventoryUI InventoryWindow;
         public Button OpenInventoryButton;
@@ -83,6 +87,9 @@ namespace CreatorKitCodeInternal
             UpdatePlayerUI();
         }
 
+        private bool isInBattleAlready = false;
+        private AudioSource NowBattleMusicPlaying;
+        
         void UpdatePlayerUI()
         {
             CharacterData data = PlayerCharacter.Data;
@@ -93,10 +100,21 @@ namespace CreatorKitCodeInternal
         
             if (PlayerCharacter.CurrentTarget != null)
             {
+                if (!isInBattleAlready)
+                {
+                    NowBattleMusicPlaying = SFXManager.PlaySound(SFXManager.Use.Sound2D, 
+                        new SFXManager.PlayData(){ Clip = FightClip},true);
+                    isInBattleAlready = true;
+                }
                 UpdateEnemyUI(PlayerCharacter.CurrentTarget);
             }
             else
             {
+                if (isInBattleAlready)
+                {
+                    NowBattleMusicPlaying.Stop();
+                    isInBattleAlready = false;
+                }
                 EnemyHealthSlider.gameObject.SetActive(false);
             }
 
@@ -144,10 +162,6 @@ namespace CreatorKitCodeInternal
 
         public void ToggleInventory()
         {
-            result.AggregatedDamage = 1000;
-            SceneManager.LoadScene("Bootstrap");
-            return;
-            
             if (InventoryWindow.gameObject.activeSelf)
             {
                 ((Image)OpenInventoryButton.targetGraphic).sprite = m_ClosedInventorySprite;
