@@ -28,11 +28,19 @@ public class CharacterManager : MonoBehaviour
     [SerializeField]
     private List<GameObject> CharactersButtons;
     
+    // list
+    //[SerializeField] private List<GameObject> _UIPositions;
+    // 0 - CharacterCreate
+    // 1 - CharacterChoose
+    // 2 - CharacterProfile
+    // 3 - MatchOptions
+    // 4 - info panel
+    
     //[SerializeField] private BattleResult _battleResult;
     [SerializeField] private CharactersLocalData _charactersLocalData;
     [SerializeField] private Transform _parent;
-    
-    private string _inputFieldText;
+    [SerializeField]
+    private InputField _inputFieldText;
     private GameObject _characterPrefab;
     
     private void Start()
@@ -46,14 +54,15 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
-    public void OnNameChanged(string changedName)
+    public void onValueChanged()
     {
-        _inputFieldText = changedName;
+        Debug.Log("!!!");
+        SetCurrentCharacter(_inputFieldText.text);
     }
-
+    
     public void OnCreatButtonClicked()
     {
-        if (string.IsNullOrEmpty(_inputFieldText))
+        if (string.IsNullOrEmpty(_inputFieldText.text))
         {
             Debug.LogError("Ïnput field should not be empty");
             return;
@@ -90,7 +99,7 @@ public class CharacterManager : MonoBehaviour
         PlayFabClientAPI.GrantCharacterToUser(new GrantCharacterToUserRequest
         {
             ItemId = itemId,
-            CharacterName = _inputFieldText
+            CharacterName = _inputFieldText.text
         }, result =>
         {
             UpdateCharacterStatistics(result.CharacterId);
@@ -114,26 +123,34 @@ public class CharacterManager : MonoBehaviour
             UpdateCharacters();
         }, Debug.LogError);
     }
-
-    private void UpdateCharacters()
+    private ListUsersCharactersResult _characterResult;
+    public void UpdateCharacters()
     {
         RefreshList();
-        PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
+        GetCharacters();
+        if (_characterResult == null)
+        {
+            return;
+        }
+        foreach (var character in _characterResult.Characters)
+        {
+            Debug.Log(character.CharacterName);
+            CharactersButtons.Add(Instantiate(_characterPrefab, _parent));
+            var texts = CharactersButtons.Last().GetComponentsInChildren<Text>();
+            texts[0].text = character.CharacterName;
+            PlayFabClientAPI.GetCharacterStatistics(new GetCharacterStatisticsRequest()
+                    {CharacterId = character.CharacterId},
+                result =>
+                {
+                    texts[1].text = result.CharacterStatistics["Level"].ToString();
+                },Debug.LogError);
+            var but = CharactersButtons.Last().GetComponent<Button>();
+            but.onClick.AddListener(()=> ChooseCharacter(character.CharacterId));
+        }
+        /*PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
             result =>
             {
-                foreach (var character in result.Characters)
-                {
-                    CharactersButtons.Add(Instantiate(_characterPrefab, _parent));
-                    var texts = CharactersButtons.Last().GetComponents<Text>();
-                    texts[0].text = character.CharacterName;
-                    PlayFabClientAPI.GetCharacterStatistics(new GetCharacterStatisticsRequest()
-                            {CharacterId = _charactersLocalData.CurrentCharacter},
-                        result =>
-                        {
-                            texts[1].text = result.CharacterStatistics["Level"].ToString();
-                        },Debug.LogError);
-                    
-                }
+                
                 
                 // for (int i = 0; i != 2 && i != result.Characters.Count; ++i)
                 // {
@@ -147,7 +164,12 @@ public class CharacterManager : MonoBehaviour
                 //     }, Debug.LogError);
                 // }
                 //plusPanel.SetActive(true);
-            }, Debug.LogError);
+            }, Debug.LogError);*/
+    }
+
+    private void ChooseCharacter(string id)
+    {
+        GetCurrentCharacterAndPutInfoBox(id);
     }
 
     private void RefreshList()
@@ -193,30 +215,48 @@ public class CharacterManager : MonoBehaviour
         }, Debug.LogError);
     }
 
-    public void SetCurrentCharacter()
+    
+    private void GetCharacters()
     {
-        _charactersLocalData.CurrentCharacter = _inputNameOfCharacter.text;
+        PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
+            result =>
+            {
+                _characterResult = result;
+            }, Debug.LogError );
+    }
+    
+    public void SetCurrentCharacter(string input)
+    {
+        
+        foreach (var character in _characterResult.Characters)
+        {
+            if (character.CharacterName == input)//_inputNameOfCharacter.text)
+            {
+                _charactersLocalData.CurrentCharacter = character.CharacterId;
+            }
+        }
     }
     
     //массовая функция
-    public void GetCurrentCharacterAndPutInfoBox()
-    { 
+    public void GetCurrentCharacterAndPutInfoBox(string id)
+    {
+        _charactersLocalData.CurrentCharacter = id;
         PlayFabClientAPI.GetCharacterStatistics(new GetCharacterStatisticsRequest()
                     {CharacterId = _charactersLocalData.CurrentCharacter},
-                result => 
+                result =>
                 {
                     foreach (var characterStatistic in result.CharacterStatistics  )
                     {
                         infoCharacter.text += characterStatistic.Key + ": " + characterStatistic.Value + "\n";
                     }
-                },Debug.LogError);
-        PlayFabClientAPI.GetUserInventory(new GetUserInventoryRequest(),
-            result => 
-        {
-            foreach (var characterStatistic in result.VirtualCurrency  )
-            {
-                infoCharacter.text += characterStatistic.Key + ": " + characterStatistic.Value + "\n";
-            }
-        },Debug.LogError);
+                    PlayFabClientAPI.GetUserInventory(new GetUserInventoryRequest(),
+                        result => 
+                        {
+                            foreach (var characterStatistic in result.VirtualCurrency  )
+                            {
+                                infoCharacter.text += characterStatistic.Key + ": " + characterStatistic.Value + "\n";
+                            }
+                        },error => Debug.Log("GetUserInventory"));
+                },error => Debug.Log("GetCharacterStatistics"));
     }
 }

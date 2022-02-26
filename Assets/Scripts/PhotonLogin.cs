@@ -11,13 +11,17 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _mm;
     [SerializeField] private GameObject _startButton;
     [SerializeField] private Text _playersCounter;
-
+    [SerializeField] private Transform _parentListRoom;
+    
     private ProfileManager _profileManager;
     private int _roomCounter;
-
+    private List<RoomInfo> _roomInfos;
+    private GameObject _listElementPrefab;
+    
     private void Awake()
     {
         _profileManager = GetComponent<ProfileManager>();
+        _listElementPrefab = Resources.Load<GameObject>("listElementPrefab");
         PhotonNetwork.AutomaticallySyncScene = true;
     }
 
@@ -56,6 +60,7 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        _roomInfos = roomList;
         _roomCounter = roomList.Count;
     }
 
@@ -96,14 +101,38 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
 
     public void OnCreateRoomButtonClicked()
     {
-        if (_roomCounter <= 0)
+        var options = new RoomOptions {MaxPlayers = 2};
+        PhotonNetwork.CreateRoom("", options);
+    }
+
+    public void OnJoinRandomRoom()
+    {
+        PhotonNetwork.JoinRandomRoom();
+        RefreshListOfRooms();
+    }
+
+    public void OnJoinRoomById(string id)
+    {
+        PhotonNetwork.JoinRoom(id);
+        RefreshListOfRooms();
+    }
+
+    public void GenerateListOfRooms()
+    {
+        foreach (var roomInfo in _roomInfos)
         {
-            var options = new RoomOptions {MaxPlayers = 2};
-            PhotonNetwork.CreateRoom("", options);
+           var go = Instantiate(_listElementPrefab, _parentListRoom).GetComponent<RoomListElementUI>();
+           go._text.text = roomInfo.Name;
+           go._joinButton.onClick.AddListener(()=>OnJoinRoomById(roomInfo.Name));
         }
-        else
+    }
+
+    public void RefreshListOfRooms()
+    {
+        foreach (var room in _parentListRoom.transform.GetComponentsInChildren<RoomListElementUI>())
         {
-            PhotonNetwork.JoinRandomRoom();
+            room._joinButton.onClick.RemoveAllListeners();
+            Destroy(room.gameObject);
         }
     }
     
