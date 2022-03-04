@@ -6,5 +6,8 @@ using UnityEngine.UI;
 public class BaseUIElemntWithBackButton : MonoBehaviour
 {
     public int index;
-    public List<Button> BackButton;
+    public Button BackButton;
+    public Button ActivatorButton;
+    public List<GameObject> WhatToShow;
+    public List<GameObject> WhatToUnShow;
 }

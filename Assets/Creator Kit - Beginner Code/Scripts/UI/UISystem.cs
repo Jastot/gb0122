@@ -100,8 +100,10 @@ namespace CreatorKitCodeInternal
         
             if (PlayerCharacter.CurrentTarget != null)
             {
+                Debug.Log("PlayerCharacter.CurrentTarget");
                 if (!isInBattleAlready)
                 {
+                    Debug.Log("isInBattleAlready");
                     NowBattleMusicPlaying = SFXManager.PlaySound(SFXManager.Use.Sound2D, 
                         new SFXManager.PlayData(){ Clip = FightClip},true);
                     isInBattleAlready = true;

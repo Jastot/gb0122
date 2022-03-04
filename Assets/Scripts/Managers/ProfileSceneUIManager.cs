@@ -1,50 +1,70 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ProfileSceneUIManager : MonoBehaviour
 {
-    [SerializeField] private List<BaseUIElemntWithBackButton> UI;
-    private Queue<int> _indexOfLastPoss;
+    [SerializeField] private GameObject baseUIComp;
+    private List<BaseUIElemntWithBackButton> UI;
+    private Stack<int> _indexOfLastPoss;
     
     private void Start()
     {
-        foreach (var baseUIElemntWithBackButton in UI)
+        _indexOfLastPoss = new Stack<int>();
+        UI = baseUIComp.GetComponents<BaseUIElemntWithBackButton>().ToList();
+        foreach (var baseUIElementWithBackButton in UI)
         {
-            foreach (var button in baseUIElemntWithBackButton.BackButton)
-            {
-                button.onClick.AddListener(GoBack);
-            }
+            baseUIElementWithBackButton.BackButton.onClick.AddListener(
+                ()=>GoBack(baseUIElementWithBackButton.index));
+            if (baseUIElementWithBackButton.ActivatorButton != null)
+                baseUIElementWithBackButton.ActivatorButton.onClick.AddListener(
+                ()=>AddInStack(baseUIElementWithBackButton.index));
         }
     }
 
-    private void GoBack()
+    private void GoBack(int index)
     {
-        
-        
+        if (index != _indexOfLastPoss.Peek())
+        {
+            Debug.Log(index+ " "+ _indexOfLastPoss.Peek()); 
+            return;
+        }
+        foreach (var gameObject in UI[_indexOfLastPoss.Peek()].WhatToShow)
+        {
+            gameObject.SetActive(true);
+        }
+        foreach (var gameObject in UI[_indexOfLastPoss.Peek()].WhatToUnShow)
+        {
+            gameObject.SetActive(false);
+        }
+        PeekFromStack();
     }
-    
-    
 
-    private void AddInQueue()
+    private void AddInStack(int index)
     {
-        _indexOfLastPoss.Enqueue(0);
+        if (!_indexOfLastPoss.Contains(index))
+            _indexOfLastPoss.Push(index);
     }
 
-    private int PeekFromQueue()
+    public void ClearStack()
     {
-       return _indexOfLastPoss.Dequeue();
+        _indexOfLastPoss.Clear();
+    }
+
+    private void PeekFromStack()
+    {
+        _indexOfLastPoss.Pop();
     }
     
     private void OnDestroy()
     {
-        foreach (var baseUIElemntWithBackButton in UI)
+        foreach (var baseUIElementWithBackButton in UI)
         {
-            foreach (var button in baseUIElemntWithBackButton.BackButton)
-            {
-                button.onClick.RemoveAllListeners();
-            }
+            baseUIElementWithBackButton.BackButton.onClick.RemoveAllListeners();
+            if(baseUIElementWithBackButton.ActivatorButton!=null)
+                baseUIElementWithBackButton.ActivatorButton.onClick.RemoveAllListeners();
         }
     }
 }

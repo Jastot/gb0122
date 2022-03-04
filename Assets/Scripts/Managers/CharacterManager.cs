@@ -5,42 +5,20 @@ using PlayFab;
 using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Monetization;
 using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
     private const string CharactersStoreId = "characters_store";
     private const string VirtualCurrencyKey = "GC";
-
-    // [SerializeField] private GameObject createPanel;
-    // [SerializeField] private GameObject plusPanel;
-    //
-    // [SerializeField] private GameObject plus1;
-    // [SerializeField] private GameObject character1;
-    // [SerializeField] private Text characterName1;
-    // [SerializeField] private Text characterLvl1;
-    // [SerializeField] private Text characterName2;
-    // [SerializeField] private Text characterLvl2;
-    //[SerializeField] private GameObject plusPanel;
-    
-    [SerializeField] private InputField _inputNameOfCharacter;
+    [SerializeField] private GameObject _whatToShow;
+    [SerializeField] private List<GameObject> _whatToHide;
     [SerializeField] private TMP_Text infoCharacter;
-    [SerializeField]
-    private List<GameObject> CharactersButtons;
-    
-    // list
-    //[SerializeField] private List<GameObject> _UIPositions;
-    // 0 - CharacterCreate
-    // 1 - CharacterChoose
-    // 2 - CharacterProfile
-    // 3 - MatchOptions
-    // 4 - info panel
-    
-    //[SerializeField] private BattleResult _battleResult;
+    [SerializeField] private List<GameObject> CharactersButtons;
     [SerializeField] private CharactersLocalData _charactersLocalData;
     [SerializeField] private Transform _parent;
-    [SerializeField]
-    private InputField _inputFieldText;
+    [SerializeField] private InputField _inputFieldText;
     private GameObject _characterPrefab;
     
     private void Start()
@@ -56,7 +34,6 @@ public class CharacterManager : MonoBehaviour
 
     public void onValueChanged()
     {
-        Debug.Log("!!!");
         SetCurrentCharacter(_inputFieldText.text);
     }
     
@@ -64,7 +41,7 @@ public class CharacterManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(_inputFieldText.text))
         {
-            Debug.LogError("Ïnput field should not be empty");
+            Debug.LogError("Input field should not be empty");
             return;
         }
         PlayFabClientAPI.GetStoreItems(new GetStoreItemsRequest
@@ -146,25 +123,8 @@ public class CharacterManager : MonoBehaviour
                 },Debug.LogError);
             var but = CharactersButtons.Last().GetComponent<Button>();
             but.onClick.AddListener(()=> ChooseCharacter(character.CharacterId));
+            but.onClick.AddListener(()=> ShowUI());
         }
-        /*PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
-            result =>
-            {
-                
-                
-                // for (int i = 0; i != 2 && i != result.Characters.Count; ++i)
-                // {
-                //     var characterName = result.Characters[i].CharacterName;
-                //     PlayFabClientAPI.GetCharacterStatistics(new GetCharacterStatisticsRequest
-                //     {
-                //         CharacterId = result.Characters[i].CharacterId
-                //     }, res =>
-                //     {
-                //         chosenCharacterName.text = characterName + "\n" + res.CharacterStatistics["Level"] + "\n";
-                //     }, Debug.LogError);
-                // }
-                //plusPanel.SetActive(true);
-            }, Debug.LogError);*/
     }
 
     private void ChooseCharacter(string id)
@@ -172,6 +132,20 @@ public class CharacterManager : MonoBehaviour
         GetCurrentCharacterAndPutInfoBox(id);
     }
 
+    public void AbortCharacter()
+    {
+        infoCharacter.text = "";
+    }
+    
+    private void ShowUI()
+    {
+        _whatToShow.SetActive(true);
+        foreach (var gameObject in _whatToHide)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+    
     private void RefreshList()
     {
         foreach (var VARIABLE in CharactersButtons)
@@ -184,24 +158,6 @@ public class CharacterManager : MonoBehaviour
     
     private void UpdateCharacterAfterBattle()
     {
-        // PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
-        //     result =>
-        //     {
-        //         for (int i = 0; i != 2 && i != result.Characters.Count; ++i)
-        //         {
-        //             PlayFabClientAPI.UpdateCharacterStatistics(new UpdateCharacterStatisticsRequest
-        //             {
-        //                 CharacterId = result.Characters[i].CharacterId,
-        //                 CharacterStatistics = new Dictionary<string, int>
-        //                 {
-        //                     {"Exp", _charactersLocalData.BattleResult.AggregatedDamage}
-        //                 }
-        //             }, result =>
-        //             {
-        //                 _charactersLocalData.BattleResult.AggregatedDamage = 0;
-        //             }, Debug.LogError);
-        //         }
-        //     }, Debug.LogError);
         PlayFabClientAPI.UpdateCharacterStatistics(new UpdateCharacterStatisticsRequest()
         {
             CharacterId = _charactersLocalData.CurrentCharacter,

@@ -149,6 +149,7 @@ namespace CreatorKitCode
             source.gameObject.transform.position = data.Position;
             source.pitch = Random.Range(data.PitchMin, data.PitchMax);
             source.volume = data.Volume;
+            source.loop = false;
             source.Play();
         }
         

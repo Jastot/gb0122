@@ -10,15 +10,10 @@ public class GameController : MonoBehaviour
     //тут нужно заинитить стартовое UI и отслеживание конца игры
     [SerializeField] private UISystem _uiSystem;
     [SerializeField] private BattleResult result;
-    void Start()
-    {
-     
-    }
 
-    
-    void Update()
+    private void Start()
     {
-        
+        throw new NotImplementedException();
     }
 
     public void OnDestroy()
