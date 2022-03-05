@@ -167,7 +167,8 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         options.MaxPlayers = Convert.ToByte(PlayersInRoom);
         //OpenOrPrivateRoom
         options.IsVisible = Convert.ToBoolean(_dropdownRoomPrivacy.value);
-            
+        //
+        
         options.CustomRoomProperties = hashtable;
         PhotonNetwork.CreateRoom(_roomName, options);
     }

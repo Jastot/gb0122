@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 
 namespace UI
@@ -8,6 +9,11 @@ namespace UI
     public class StartGameUI: MonoBehaviour
     {
         [SerializeField] private CanvasGroup _canvasGroup;
+        [SerializeField] private TMP_Text _StartText;
+        /*Условия победы:
+
+        Условия поражения:*/
+
         private Tween _fadeTween;
 
         private void Start()
@@ -15,6 +21,23 @@ namespace UI
             StartCoroutine(StartGameShowPanel());
         }
 
+        public void SetText(PhotonLogin.GameType gameType)
+        {
+            switch (gameType)
+            {
+                case PhotonLogin.GameType.COOP:
+                    //_StartText.text =
+                    break;
+                case PhotonLogin.GameType.TwoTeams:
+                    //_StartText.text =
+                    break;
+                case PhotonLogin.GameType.HateAll:
+                    //_StartText.text =
+                    break;
+            }
+            
+        }
+        
         public void FadeIn(float duration)
         {
             Fade(1f,duration, () =>

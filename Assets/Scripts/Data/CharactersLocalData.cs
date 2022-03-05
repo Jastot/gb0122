@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Data
 {
@@ -6,6 +7,7 @@ namespace Data
     public class CharactersLocalData: ScriptableObject
     {
         public string CurrentCharacter;
+        public Dictionary<string, int> CharacterStatistics = new Dictionary<string, int>();
         public BattleResult BattleResult;
     }
 }

@@ -1,8 +1,9 @@
 ﻿
 using System;
+using CreatorKitCode;
 
 public interface ICanGiveExp
 {
-    public event Action<float> DeathRattle;
+    public event Action<int,CharacterData> DeathRattle;
     
 }

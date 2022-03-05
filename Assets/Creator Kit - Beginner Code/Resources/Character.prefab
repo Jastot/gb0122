@@ -126,7 +126,7 @@ MonoBehaviour:
       agility: 5
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 11400000, guid: 7f1a957562a85434e80c93859ff367a3, type: 2}
   HitClip:
   - {fileID: 8300000, guid: f8f4ccf89f1c24a45950bc9d619a7448, type: 3}

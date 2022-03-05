@@ -1,17 +1,25 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using CreatorKitCode;
+using JetBrains.Annotations;
 using Photon.Pun;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class EnemySpawner : MonoBehaviour
-{ 
-    private int _allCountOfEnemy;
+{
+    
     [SerializeField] private List<int> HowMany;
     [SerializeField] private List<string> WhatToSpawn;
     private List<EnemiesSpawnerPoint> _enemiesSpawnerPoints;
     private Queue<int> _queueSpawn = new Queue<int>();
     private Dictionary<int,int> _counter;
+    private List<CharacterData> _characterDataList;
+    private int _allCountOfEnemy;
+
+    public event Action<int> CountOfEnemyChanged; 
     void Start()
     {
         foreach (var VARIABLE in HowMany)
@@ -20,6 +28,7 @@ public class EnemySpawner : MonoBehaviour
         }
         _enemiesSpawnerPoints = this.gameObject.GetComponentsInChildren<EnemiesSpawnerPoint>().ToList();
         _counter = new Dictionary<int,int>();
+        _characterDataList = new List<CharacterData>();
         while (_allCountOfEnemy != _queueSpawn.Count)
         {
             GenerateQueue();
@@ -35,7 +44,7 @@ public class EnemySpawner : MonoBehaviour
 
     private void GenerateQueue()
     {
-        var gen = Random.Range(0, HowMany.Count);
+        var gen = Random.Range(0, HowMany.Count-1);
         if (!_counter.ContainsKey(gen))
         {
             _counter.Add(gen,1);
@@ -62,11 +71,28 @@ public class EnemySpawner : MonoBehaviour
         {
             for (int i = 0; i < HowMany[whatToSpawnIndex]; i++)
             {
-                PhotonNetwork.InstantiateRoomObject(prefab,_enemiesSpawnerPoints[usedSpawnPoints].transform.position ,
+                var go = PhotonNetwork.InstantiateRoomObject(prefab,_enemiesSpawnerPoints[usedSpawnPoints].transform.position ,
                     _enemiesSpawnerPoints[usedSpawnPoints].transform.rotation  ,0);
+                _characterDataList.Add(go.GetComponent<CharacterData>());
+                _characterDataList.Last().DeathRattle += LessEnemy;
                 usedSpawnPoints++;
             }
             whatToSpawnIndex++;
+        }
+    }
+
+    private void LessEnemy(int s,CharacterData characterData)
+    {
+        _allCountOfEnemy--;
+        Debug.Log("Enemy count: "+_allCountOfEnemy);
+        CountOfEnemyChanged?.Invoke(_allCountOfEnemy);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var character in _characterDataList)
+        {
+            character.DeathRattle -= LessEnemy;
         }
     }
 }

@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class CharacterSpawner : MonoBehaviour
 {
+	[SerializeField] private Transform parent;
+	
 	private void Awake()
 	{
-		PhotonNetwork.Instantiate("Character", gameObject.transform.position, gameObject.transform.rotation);
+		var go = PhotonNetwork.Instantiate("Character", gameObject.transform.position, gameObject.transform.rotation);
+		go.transform.parent = parent;
 	}
 }

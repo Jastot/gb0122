@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Data;
@@ -12,6 +13,7 @@ public class CharacterManager : MonoBehaviour
 {
     private const string CharactersStoreId = "characters_store";
     private const string VirtualCurrencyKey = "GC";
+    //[SerializeField] private GameController _gameController;
     [SerializeField] private GameObject _whatToShow;
     [SerializeField] private List<GameObject> _whatToHide;
     [SerializeField] private TMP_Text infoCharacter;
@@ -20,16 +22,22 @@ public class CharacterManager : MonoBehaviour
     [SerializeField] private Transform _parent;
     [SerializeField] private InputField _inputFieldText;
     private GameObject _characterPrefab;
-    
+
     private void Start()
     {
         _characterPrefab = Resources.Load<GameObject>("ChooseCharacterButton");
         CharactersButtons = new List<GameObject>();
         UpdateCharacters();
-        if (_charactersLocalData.BattleResult.AggregatedDamage > 0)
+        /*if (_charactersLocalData.BattleResult.AggregatedDamage > 0)
         {
             UpdateCharacterAfterBattle();
-        }
+        }*/
+        //_gameController.EndOfGame += UpdateCharacterAfterGame;
+    }
+
+    private void OnDestroy()
+    {
+       //_gameController.EndOfGame -= UpdateCharacterAfterGame;
     }
 
     public void onValueChanged()
@@ -155,23 +163,7 @@ public class CharacterManager : MonoBehaviour
         
         CharactersButtons.Clear();
     }
-    
-    private void UpdateCharacterAfterBattle()
-    {
-        PlayFabClientAPI.UpdateCharacterStatistics(new UpdateCharacterStatisticsRequest()
-        {
-            CharacterId = _charactersLocalData.CurrentCharacter,
-            CharacterStatistics = new Dictionary<string, int>
-            {
-                {"Exp", _charactersLocalData.BattleResult.AggregatedDamage}
-            }
-        }, result =>
-        {
-            _charactersLocalData.BattleResult.AggregatedDamage = 0;
-        }, Debug.LogError);
-    }
 
-    
     private void GetCharacters()
     {
         PlayFabClientAPI.GetAllUsersCharacters(new ListUsersCharactersRequest(),
@@ -197,6 +189,7 @@ public class CharacterManager : MonoBehaviour
     public void GetCurrentCharacterAndPutInfoBox(string id)
     {
         _charactersLocalData.CurrentCharacter = id;
+        _charactersLocalData.CharacterStatistics.Clear();
         PlayFabClientAPI.GetCharacterStatistics(new GetCharacterStatisticsRequest()
                     {CharacterId = _charactersLocalData.CurrentCharacter},
                 result =>
@@ -204,6 +197,7 @@ public class CharacterManager : MonoBehaviour
                     foreach (var characterStatistic in result.CharacterStatistics  )
                     {
                         infoCharacter.text += characterStatistic.Key + ": " + characterStatistic.Value + "\n";
+                        _charactersLocalData.CharacterStatistics.Add(characterStatistic.Key,characterStatistic.Value);
                     }
                     PlayFabClientAPI.GetUserInventory(new GetUserInventoryRequest(),
                         result => 

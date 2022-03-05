@@ -6,5 +6,5 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/BattleResult", order = 1)]
 public class BattleResult : ScriptableObject
 {
-    public int AggregatedDamage;
+    public int GainedExp;
 }

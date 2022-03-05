@@ -16,7 +16,8 @@ namespace CreatorKitCode
         public string CharacterName;
 
         public StatSystem Stats;
-        public float howMuchExperienceNeedToGive = 300;
+        public event Action<int,CharacterData> DeathRattle;
+        public int ExpToGive = 100;
         /// <summary>
         /// The starting weapon equipped when the Character is created. Set through the Unity Editor.
         /// </summary>
@@ -107,9 +108,13 @@ namespace CreatorKitCode
         /// <summary>
         /// Call when the character die (health reach 0).
         /// </summary>
+
+        private bool IsDead= false;
         public void Death()
         {
+            Debug.Log("Death");
             GiveExpForPlayer();
+            /*IsDead = true;*/
             Stats.Death();
         }
 
@@ -170,11 +175,11 @@ namespace CreatorKitCode
             }
         }
 
-        public event Action<float> DeathRattle; 
+         
         
         private void GiveExpForPlayer()
         { 
-            DeathRattle?.Invoke(howMuchExperienceNeedToGive);
+            DeathRattle?.Invoke(ExpToGive,this);
         }
     }
 }

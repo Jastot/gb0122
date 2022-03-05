@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Timers;
@@ -8,6 +9,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace CreatorKitCodeInternal {
     public class CharacterControl : MonoBehaviourPun, 
@@ -20,7 +22,9 @@ namespace CreatorKitCodeInternal {
 
         public CharacterData Data => m_CharacterData;
         public CharacterData CurrentTarget => m_CurrentTargetCharacterData;
-
+        private CharacterData LastTarget = null;
+        private bool currentTargetConnected=false;
+        public event Action<int> GetSomeExp; 
         public Transform WeaponLocator;
     
         [Header("Audio")]
@@ -53,7 +57,7 @@ namespace CreatorKitCodeInternal {
         NavMeshPath m_CalculatedPath;
 
         CharacterAudio m_CharacterAudio;
-
+        
         int m_TargetLayer;
         CharacterData m_CurrentTargetCharacterData = null;
         //this is a flag that tell the controller it need to clear the target once the attack finished.
@@ -188,7 +192,7 @@ namespace CreatorKitCodeInternal {
             {
                 if (m_CurrentTargetCharacterData.Stats.CurrentHealth == 0)
                 {
-                    m_CurrentTargetCharacterData.DeathRattle -= GetExp;
+                    /*m_CurrentTargetCharacterData.DeathRattle -= GetExp;*/
                     m_CurrentTargetCharacterData = null;
                 }
                 else
@@ -208,8 +212,8 @@ namespace CreatorKitCodeInternal {
 
                 if (m_CurrentState != State.ATTACKING)
                 {
-                    if (m_CurrentTargetCharacterData!=null)
-                        m_CurrentTargetCharacterData.DeathRattle -= GetExp;
+                    /*if (m_CurrentTargetCharacterData!=null)
+                        m_CurrentTargetCharacterData.DeathRattle -= GetExp;*/
                     m_CurrentTargetCharacterData = null;
                     m_TargetInteractable = null;
                 }
@@ -253,16 +257,28 @@ namespace CreatorKitCodeInternal {
             m_Animator.SetFloat(m_SpeedParamID, m_Agent.velocity.magnitude / m_Agent.speed);
 
             if (CurrentTarget != null)
-                CurrentTarget.DeathRattle += GetExp;
-            
+            {
+                if (LastTarget != null && LastTarget != CurrentTarget)
+                {
+                    LastTarget.DeathRattle -= GetExp;
+                    currentTargetConnected = !currentTargetConnected;
+                }
+                if (!currentTargetConnected)
+                {
+                    CurrentTarget.DeathRattle += GetExp;
+                    LastTarget = CurrentTarget;
+                    currentTargetConnected = !currentTargetConnected;
+                }
+            }
+
             //Keyboard shortcuts
             if(Input.GetKeyUp(KeyCode.I))
                 UISystem.Instance.ToggleInventory();
         }
 
-        private void GetExp(float obj)
+        private void GetExp(int obj,CharacterData characterData)
         {
-            
+            GetSomeExp?.Invoke(obj);
         }
 
         void GoToRespawn()

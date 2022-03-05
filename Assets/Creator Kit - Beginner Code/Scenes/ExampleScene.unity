@@ -183,7 +183,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.0601045, y: 1}
+    m_SensorSize: {x: 1.1801105, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2419,7 +2419,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &70389070
@@ -15653,7 +15653,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &415108486
@@ -21916,6 +21916,11 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 0.745283
       objectReference: {fileID: 0}
+    - target: {fileID: 3882421425800523370, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: _StartText
+      value: 
+      objectReference: {fileID: 554113882}
     - target: {fileID: 4945913392030953669, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_Value
@@ -22062,6 +22067,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5115311140117641434, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5115311140117641437, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
@@ -22150,12 +22160,12 @@ PrefabInstance:
     - target: {fileID: 6782856130959119045, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.000030518
+      value: -0.000061035156
       objectReference: {fileID: 0}
     - target: {fileID: 6782856130959119045, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -6.2494
+      value: -6.2493896
       objectReference: {fileID: 0}
     - target: {fileID: 7453168115221089606, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
@@ -23547,6 +23557,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -64
       objectReference: {fileID: 0}
+    - target: {fileID: 8536920056791133312, guid: 32695873568dfd149b83eaec94075c15,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 0.25490198
+      objectReference: {fileID: 0}
     - target: {fileID: 8903355154672822330, guid: 32695873568dfd149b83eaec94075c15,
         type: 3}
       propertyPath: m_IsActive
@@ -23576,6 +23591,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cca71aefbbf648769f5ee4b9bdf7719f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &554113882 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2443720363343206163, guid: 32695873568dfd149b83eaec94075c15,
+    type: 3}
+  m_PrefabInstance: {fileID: 554113879}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!4 &554210961 stripped
@@ -26864,7 +26891,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &613455127
@@ -33663,7 +33690,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!114 &775166170
@@ -34930,7 +34957,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &806258208
@@ -45993,7 +46020,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1055522268
@@ -46659,7 +46686,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1059361573
@@ -49858,7 +49885,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1149803696
@@ -52588,7 +52615,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1197289736
@@ -56437,7 +56464,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 960484e677af93e46b5fea9977b12946, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HowMany: 0300000002000000
+  HowMany: 0300000000000000
   WhatToSpawn:
   - CactusNailsEnemy
   - CactusBossyEnemy
@@ -62329,7 +62356,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1395455706
@@ -64255,7 +64282,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1443302174
@@ -67054,7 +67081,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &1508432497
@@ -69359,6 +69386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fffe63f15a14a884997f0e774ec3b7d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  parent: {fileID: 1570900407}
 --- !u!4 &1570900407
 Transform:
   m_ObjectHideFlags: 0
@@ -69387,7 +69415,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiSystem: {fileID: 554113880}
-  result: {fileID: 11400000, guid: fac9bc3f438144264ae41ac87e6ce208, type: 2}
+  _charactersLocalData: {fileID: 11400000, guid: 28b77fb0eee314447b5eb44619131d20,
+    type: 2}
+  _enemySpawner: {fileID: 1272648619}
+  _parentOfPlayersCharacters: {fileID: 1570900407}
 --- !u!1001 &1571444420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -88173,7 +88204,7 @@ MonoBehaviour:
       agility: 0
       elementalProtection: 00000000000000000000000000000000
       elementalBoosts: 00000000000000000000000000000000
-  howMuchExperienceNeedToGive: 300
+  ExpToGive: 100
   StartingWeapon: {fileID: 0}
   HitClip: []
 --- !u!65 &2030677052
