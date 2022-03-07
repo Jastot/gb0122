@@ -18,6 +18,7 @@ public class EnemySpawner : MonoBehaviour
     private Dictionary<int,int> _counter;
     private List<CharacterData> _characterDataList;
     private int _allCountOfEnemy;
+    public int StartCountOfEnemies;
 
     public event Action<int> CountOfEnemyChanged; 
     void Start()
@@ -26,6 +27,8 @@ public class EnemySpawner : MonoBehaviour
         {
             _allCountOfEnemy += VARIABLE;
         }
+
+        StartCountOfEnemies = _allCountOfEnemy;
         _enemiesSpawnerPoints = this.gameObject.GetComponentsInChildren<EnemiesSpawnerPoint>().ToList();
         _counter = new Dictionary<int,int>();
         _characterDataList = new List<CharacterData>();

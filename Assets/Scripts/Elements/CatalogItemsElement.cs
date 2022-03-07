@@ -1,3 +1,4 @@
+using Controllers;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class CatalogItemsElement : MonoBehaviour
     [SerializeField] private Text itemName;
     [SerializeField] private Text price;
 
+    private float _price;
     private StoreItem _item;
 
     public void SetItem(CatalogItem item)
@@ -24,6 +26,7 @@ public class CatalogItemsElement : MonoBehaviour
         itemName.text = item.ItemId;
         if (item.VirtualCurrencyPrices.ContainsKey("GD"))
         {
+            _price = item.VirtualCurrencyPrices["GD"];
             price.text = item.VirtualCurrencyPrices["GD"].ToString();
         }
     }
@@ -31,6 +34,12 @@ public class CatalogItemsElement : MonoBehaviour
     public void SetItem(ItemInstance item)
     {
         itemName.text = item.DisplayName;
+    }
+    
+    public void ConvertPrice(float coefficient)
+    {
+        _price *= coefficient;
+        price.text = _price.ToString();
     }
     
     public void MakePurchase()
