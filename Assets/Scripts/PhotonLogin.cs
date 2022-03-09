@@ -135,7 +135,6 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
-
         PhotonNetwork.LoadLevel("ExampleScene");
     }
 

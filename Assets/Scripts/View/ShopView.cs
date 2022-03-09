@@ -1,5 +1,6 @@
 ﻿using System;
 using CreatorKitCode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace View
@@ -12,20 +13,32 @@ namespace View
         public event Action DeactivateStoreEvent;
         private CharacterData customer;
         private float IsCustomerDyingCoefficient = 1f;
-       
+        public bool IsActive=false;
         private void OnTriggerStay(Collider other)
         {
-            Debug.Log("Stay");
-            if (Input.GetKeyDown(KeyCode.E) && !customer)
+            if (Input.GetKeyUp(KeyCode.E))
             {
-                Debug.Log("OpenShop");
-                customer = other.GetComponent<CharacterData>();
-                ActivateStore();
+                if(!IsActive)
+                {
+                    if (!customer)
+                    {
+                        customer = other.GetComponent<CharacterData>();
+                        IsActive = true;
+                        ActivateStore();
+                    }
+                }
+                else
+                {
+                    DeactivateStore();
+                    IsActive = false;
+                }
+                
             }
         }
 
         private void ActivateStore()
         {
+            CheckCustomerDying();
             ActivateStoreEvent?.Invoke(_shopID,this);
         }
 

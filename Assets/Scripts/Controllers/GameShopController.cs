@@ -11,7 +11,7 @@ namespace Controllers
     public class GameShopController: MonoBehaviour
     {
         [SerializeField] private CatalogItemsElement _element;
-        [SerializeField] private Transform UIParent;
+        [SerializeField] private ShopUI _shopUI;
         [SerializeField] private TimeController _timeController;
         [SerializeField] private EnemySpawner _enemySpawner;
         private List<ShopView> _shopViews;
@@ -53,26 +53,30 @@ namespace Controllers
             {
                 HandleStore(result.Store);
                 AddMoreGreedForItemInShop(shopView);
-                UIParent.gameObject.SetActive(true);
+                _shopUI.gameObject.SetActive(true);
             }, Debug.LogError);
         }
 
         public void DeactivateStore()
         {
             _shopItemList.Clear();
-            UIParent.gameObject.SetActive(false);
+            ClearUI();
+            _shopUI.gameObject.SetActive(false);
         }
 
         private void ClearUI()
         {
-            
+            for (int i = 0; i < _shopUI._transformParent.transform.childCount; i++)
+            {
+              Destroy(_shopUI._transformParent.transform.GetChild(i).gameObject);
+            }
         }
         
         private void HandleStore(List<StoreItem> store)
         {
             foreach (var item in store)
             {
-                var element = Instantiate(_element, UIParent.transform);
+                var element = Instantiate(_element, _shopUI._transformParent.transform);
                 element.gameObject.SetActive(true);
                 element.SetItem(item);
                 _shopItemList.Add(element);

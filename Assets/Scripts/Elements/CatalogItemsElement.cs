@@ -1,3 +1,4 @@
+using System;
 using Controllers;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -23,6 +24,7 @@ public class CatalogItemsElement : MonoBehaviour
     
     public void SetItem(StoreItem item)
     {
+        _item = item;
         itemName.text = item.ItemId;
         if (item.VirtualCurrencyPrices.ContainsKey("GD"))
         {
@@ -42,13 +44,20 @@ public class CatalogItemsElement : MonoBehaviour
         price.text = _price.ToString();
     }
     
-    public void MakePurchase()
+    public void MakePurchase(int vc)
     {
-        PlayFabClientAPI.PurchaseItem(new PurchaseItemRequest
+        // вызов магазина, в который вкладывается покупаемый итем
+        if (vc > 10)
         {
-            ItemId = "sw_cnt_key",
-            Price = 10,
-            VirtualCurrency = "GD"
-        }, result => { }, Debug.LogError);
+            //TODO:
+            PlayFabClientAPI.PurchaseItem(new PurchaseItemRequest
+            {
+                ItemId = _item.ItemId,
+                Price = Convert.ToInt32(_item.VirtualCurrencyPrices["GD"]),
+                VirtualCurrency = "GD"
+            }, result => { }, Debug.LogError);
+            //PlayFabClientAPI.SubtractUserVirtualCurrency(); 
+        }
+        
     }
 }

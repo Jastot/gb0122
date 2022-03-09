@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections;
 using DG.Tweening;
+using Interfaces;
 using TMPro;
 using UnityEngine;
 
 namespace UI
 {
-    public class StartGameUI: MonoBehaviour
+    public class StartGameUI: MonoBehaviour, IFadeUI
     {
         [SerializeField] private CanvasGroup _canvasGroup;
         [SerializeField] private TMP_Text _StartText;
+        [SerializeField] private bool _IsItStart;
+        [SerializeField] private float _firstWait = 1f;
+        [SerializeField] private float _secondWait = 5f;
         /*Условия победы:
 
         Условия поражения:*/
@@ -18,9 +22,15 @@ namespace UI
 
         private void Start()
         {
-            StartCoroutine(StartGameShowPanel());
+            if (_IsItStart)
+                StartCoroutine(ShowHidePanel());
         }
 
+        public void ShowEndUI()
+        {
+            StartCoroutine(ShowAndStayPanel());
+        }
+        
         public void SetText(PhotonLogin.GameType gameType)
         {
             switch (gameType)
@@ -67,11 +77,17 @@ namespace UI
             _fadeTween.onComplete += onEnd;
         }
 
-        private IEnumerator StartGameShowPanel()
+        public IEnumerator ShowAndStayPanel()
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(_firstWait);
             FadeIn(1f);
-            yield return new WaitForSeconds(5f);
+        }
+
+        public IEnumerator ShowHidePanel()
+        {
+            yield return new WaitForSeconds(_firstWait);
+            FadeIn(1f);
+            yield return new WaitForSeconds(_secondWait);
             FadeOut(1f);
         }
     }

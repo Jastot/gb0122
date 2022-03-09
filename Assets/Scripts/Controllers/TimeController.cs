@@ -17,7 +17,6 @@ namespace Controllers
         private double startTime;
         private int epoxe = 0;
         ExitGames.Client.Photon.Hashtable CustomeValue;
-
         public event Action<int> GiveDateTime;
         
         void Start()
@@ -43,17 +42,17 @@ namespace Controllers
             timerIncrementValue = PhotonNetwork.Time - startTime;
             if (timerIncrementValue >= timer)
             {
-                var newMil =timerIncrementValue - date.Second;
+                var newMil =timerIncrementValue - (date.Hour*60*60+date.Minute*60+date.Second);
                 if (newMil >= 0)
                     date = date.AddSeconds(newMil);
                 _text.text = date.ToLongTimeString();
-                if (epoxe<_dateTimeColapces.Count)
-                    if (_dateTimeColapces[epoxe].Minute == date.Minute)
-                    {
-                        Debug.Log("!!!");
-                        GiveDateTime?.Invoke(epoxe);
-                        epoxe++;
-                    }
+                if (_dateTimeColapces!=null)
+                    if (epoxe<_dateTimeColapces.Count)
+                        if (_dateTimeColapces[epoxe].Minute == date.Minute)
+                        {
+                            GiveDateTime?.Invoke(epoxe);
+                            epoxe++;
+                        }
             }
         }
     }

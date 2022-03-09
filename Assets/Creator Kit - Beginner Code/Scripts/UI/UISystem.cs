@@ -27,6 +27,7 @@ namespace CreatorKitCodeInternal
 
         [Header("GameStart")] 
         public StartGameUI StartGameUI;
+        public StartGameUI EndGameUI;
         
         [Header("Enemy")]
         public Slider EnemyHealthSlider;
