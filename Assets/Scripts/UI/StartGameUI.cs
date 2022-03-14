@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Data;
 using DG.Tweening;
 using Interfaces;
 using TMPro;
@@ -31,21 +32,86 @@ namespace UI
             StartCoroutine(ShowAndStayPanel());
         }
         
-        public void SetText(PhotonLogin.GameType gameType)
+        public void SetStartText(PhotonLogin.GameType gameType)
         {
             switch (gameType)
             {
                 case PhotonLogin.GameType.COOP:
-                    //_StartText.text =
+                    _StartText.text = "Условия победы:\n" +
+                                      "Убить всех кактусов!\n" +
+                                      "Условия поражения:\n"+
+                                      "смерть от рук кактусов";
                     break;
                 case PhotonLogin.GameType.TwoTeams:
-                    //_StartText.text =
+                    _StartText.text = "Условия победы:\n" +
+                                      "Убить всех кактусов!\n" +
+                                      "Условия поражения:\n"+
+                                      "Кол-во убитых кактусов вашей командой меньше,\n" +
+                                      "чем кол-во убитых кактусов командой соперников\n" +
+                                      "или\n" +
+                                      "смерть от рук кактусов или противников";
                     break;
                 case PhotonLogin.GameType.HateAll:
-                    //_StartText.text =
+                    _StartText.text = "Условия победы:\n" +
+                                      "Убить всех кактусов!\n" +
+                                      "Условия поражения:\n"+
+                                      "Кол-во убитых кактусов меньше,чем кол-во убитых кактусов соперниками\n" +
+                                      "или\n" +
+                                      "смерть от рук кактусов или противников";
                     break;
             }
             
+        }
+
+        public void SetEndText(MatchStatistics matchStatistics,PhotonLogin.GameType gameType)
+        {
+            string endFraze = "";
+            switch (matchStatistics.WinOrLoose)
+            {
+                case GameController.PlayerState.Win:
+                    endFraze = "ПОБЕДА!!!\n";
+                    break;
+                case GameController.PlayerState.Loose:
+                    endFraze = "Поражение...\n";
+                    break;
+            }
+
+            var teamColor = "";
+            switch (matchStatistics.WinTeamColor)
+            {
+                case TeamColor.None:
+                    break;
+                case TeamColor.Red:
+                    teamColor = "Красная команда";
+                    break;
+                case TeamColor.Blue:
+                    teamColor = "Синяя команда";
+                    break;
+            }
+            switch (gameType)
+                    {
+                        case PhotonLogin.GameType.COOP:
+                            endFraze += "Статистика матча:\n" +
+                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp}";
+                            break;
+                        case PhotonLogin.GameType.TwoTeams:
+                            endFraze += $"{teamColor} доминирует!:\n" +
+                                        "Статистика матча:\n" +
+                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
+                                        $"Игроков убито: {matchStatistics.KillPlayers}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp}";
+                            
+                            break;
+                        case PhotonLogin.GameType.HateAll:
+                            endFraze += "Статистика матча:\n" +
+                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
+                                        $"Игроков убито: {matchStatistics.KillPlayers}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp}";
+                            break;
+                    }
+
+            _StartText.text = endFraze;
         }
         
         public void FadeIn(float duration)

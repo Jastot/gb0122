@@ -23,26 +23,31 @@ public class EnemySpawner : MonoBehaviour
     public event Action<int> CountOfEnemyChanged; 
     void Start()
     {
-        foreach (var VARIABLE in HowMany)
+        if (PhotonNetwork.IsMasterClient)
         {
-            _allCountOfEnemy += VARIABLE;
-        }
-
-        StartCountOfEnemies = _allCountOfEnemy;
-        _enemiesSpawnerPoints = this.gameObject.GetComponentsInChildren<EnemiesSpawnerPoint>().ToList();
-        _counter = new Dictionary<int,int>();
-        _characterDataList = new List<CharacterData>();
-        while (_allCountOfEnemy != _queueSpawn.Count)
-        {
-            GenerateQueue();
-            var s = "";
-            foreach (var VARIABLE in _queueSpawn)
+            foreach (var VARIABLE in HowMany)
             {
-                s += VARIABLE + " ";
+                _allCountOfEnemy += VARIABLE;
             }
-            Debug.Log(s);
+
+            StartCountOfEnemies = _allCountOfEnemy;
+            _enemiesSpawnerPoints = this.gameObject.GetComponentsInChildren<EnemiesSpawnerPoint>().ToList();
+            _counter = new Dictionary<int, int>();
+            _characterDataList = new List<CharacterData>();
+            while (_allCountOfEnemy != _queueSpawn.Count)
+            {
+                GenerateQueue();
+                var s = "";
+                foreach (var VARIABLE in _queueSpawn)
+                {
+                    s += VARIABLE + " ";
+                }
+
+                Debug.Log(s);
+            }
+
+            SpawnEnemies();
         }
-        SpawnEnemies();
     }
 
     private void GenerateQueue()
@@ -93,9 +98,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (var character in _characterDataList)
+        if (PhotonNetwork.IsMasterClient)
         {
-            character.DeathRattle -= LessEnemy;
+            foreach (var character in _characterDataList)
+            {
+                character.DeathRattle -= LessEnemy;
+            }
         }
     }
 }

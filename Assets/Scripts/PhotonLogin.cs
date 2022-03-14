@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Data;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
@@ -13,11 +15,14 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     [SerializeField] private GameObject _menu;
     [SerializeField] private GameObject _mm;
     [SerializeField] private GameObject _startButton;
-    [SerializeField] private Text _playersCounter;
     [SerializeField] private TMP_Text _showErrorOfRandomConnection;
     [SerializeField] private Transform _parentListRoom;
+    [SerializeField] private CharactersLocalData _charactersLocalData;
     
-
+    [Header("Creating room elements")] 
+    [SerializeField] private Text _playersCounter;
+    [SerializeField] private TMP_Text _yourTeamIs;
+    
     [Header("Creating room elements")] 
     [SerializeField] private TMP_InputField _inputFieldRoomName;
     [SerializeField] private TMP_Dropdown _dropdownMatchType;
@@ -33,14 +38,14 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     private int PlayersInRoom = 1;
     private int _roomCounter;
     private string _roomName="";
-    
+    private string currentPlayer;
     public enum GameType
     {
         COOP,
         TwoTeams,
         HateAll
     }
-    
+
     private void Awake()
     {
         _profileManager = GetComponent<ProfileManager>();
@@ -63,14 +68,20 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     
     public void AddMorePlayers()
     {
-        PlayersInRoom++;
-        _tmpTextPlayerMax.text = PlayersInRoom.ToString();
+        if (PlayersInRoom < 6)
+        {
+            PlayersInRoom++;
+            _tmpTextPlayerMax.text = PlayersInRoom.ToString();
+        }
     }
 
     public void LessPlayers()
     {
-        PlayersInRoom--;
-        _tmpTextPlayerMax.text = PlayersInRoom.ToString();
+        if (PlayersInRoom >1)
+        {
+            PlayersInRoom--;
+            _tmpTextPlayerMax.text = PlayersInRoom.ToString();
+        }
     }
     
     private void OnUserNicknameUpdate()
@@ -100,7 +111,6 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
         _roomInfos = roomList;
-        //PhotonNetwork.CurrentRoom.SetCustomProperties();
         _roomCounter = roomList.Count;
     }
 
@@ -114,27 +124,66 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         _menu.SetActive(false);
         _mm.SetActive(true);
         _playersCounter.text = $"{PhotonNetwork.CurrentRoom.Players.Count} / {PhotonNetwork.CurrentRoom.MaxPlayers}";
+        currentPlayer = PhotonNetwork.PlayerList.Last().UserId;
+        if ((GameType)PhotonNetwork.CurrentRoom.CustomProperties["GameType"] == GameType.TwoTeams)
+        {
+            Hashtable hashtable = new Hashtable();
+            if (PhotonNetwork.CurrentRoom.Players.Count % 2 == 0)
+            {
+                _yourTeamIs.text = "Red Team";
+                _yourTeamIs.color = Color.red;
+                hashtable.Add("Color", 0);
+            }
+            else
+            {
+                _yourTeamIs.text = "Blue Team";
+                _yourTeamIs.color = Color.blue;
+                hashtable.Add("Color", 1);
+            }
+
+            PhotonNetwork.PlayerList.Last().SetCustomProperties(hashtable);
+        }
+
+        _charactersLocalData.InRoomId = currentPlayer;
+        /*var pl = (Dictionary<string,int>)PhotonNetwork.CurrentRoom.CustomProperties["PlayersObjs"];
+        pl.Add(currentPlayer,TeamNum);
+        PhotonNetwork.CurrentRoom.CustomProperties["PlayersObjs"] = pl;*/
     }
     
     public override void OnLeftRoom()
     {
-        //_menu.SetActive(true);
+        
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
+        //TODO:sync
         _playersCounter.text = $"{PhotonNetwork.CurrentRoom.Players.Count} / {PhotonNetwork.CurrentRoom.MaxPlayers}";
     }
     
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         _playersCounter.text = $"{PhotonNetwork.CurrentRoom.Players.Count} / {PhotonNetwork.CurrentRoom.MaxPlayers}";
+        //var pl = (Dictionary<string,int>)PhotonNetwork.CurrentRoom.CustomProperties["PlayersObjs"];
+        /*Debug.Log("not left "+pl.Count);
+        foreach (var playerObj in pl)
+        {
+            if (playerObj.Key==currentPlayer)
+            {
+                pl.Remove(playerObj.Key);
+                return;
+            }
+        }
+        Debug.Log(pl.Count);
+        PhotonNetwork.CurrentRoom.CustomProperties["PlayersObjs"] = pl;*/
     }
 
     public void OnStartGameButtonClicked()
     {
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
+        //сохранить команды hashtable.Add("GameType",GameType.TwoTeams);
+       
         PhotonNetwork.LoadLevel("ExampleScene");
     }
 
@@ -165,11 +214,15 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         //MaxPlayers
         options.MaxPlayers = Convert.ToByte(PlayersInRoom);
         //OpenOrPrivateRoom
-        options.IsVisible = Convert.ToBoolean(_dropdownRoomPrivacy.value);
+        options.IsVisible = !Convert.ToBoolean(_dropdownRoomPrivacy.value);
         //
-        
+        /*Dictionary<string,int> obj = new Dictionary<string,int>();
+        hashtable.Add("PlayersObjs",obj);
+        */
         options.CustomRoomProperties = hashtable;
+        //options.PublishUserId = true;
         PhotonNetwork.CreateRoom(_roomName, options);
+        
     }
 
     public void OnJoinRandomRoom()

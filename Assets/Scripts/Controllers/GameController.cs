@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using CreatorKitCode;
 using CreatorKitCodeInternal;
 using Data;
 using Photon.Pun;
@@ -19,12 +20,21 @@ public class GameController : MonoBehaviour
     [SerializeField] private Transform _parentOfPlayersCharacters;
     [SerializeField] private Transform _escapeUI;
     private CharacterControl _mainCharacterController;
-
+    private MatchStatistics _matchStatistics;
+    private bool IsMainCharacterDead = false;
+    
     public event Action EndOfGame;
-
+    
+    public enum PlayerState
+    {
+        Win,
+        Loose
+    }
+    
     private void Awake()
     {
-        _uiSystem.StartGameUI.SetText((PhotonLogin.GameType)
+        _matchStatistics = new MatchStatistics();
+        _uiSystem.StartGameUI.SetStartText((PhotonLogin.GameType)
             PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
     }
 
@@ -37,8 +47,28 @@ public class GameController : MonoBehaviour
             {
                 _mainCharacterController = controller;
             }
-        }
+            foreach (var player in PhotonNetwork.PlayerList)
+            {
+                var r = controller.GetComponent<PhotonView>();
+                if (r.Controller.UserId == player.UserId)
+                {
+                    int playerColor = (int)player.CustomProperties["Color"];
+                    switch (playerColor)
+                    {
+                        case 0:
+                            controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.red;
+                            break;
+                        case 1:
+                            controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
+                            break;
+                    }
+                    return;
+                }
 
+            }
+        }    
+        
+        _mainCharacterController.Data.DeathRattle += SetMainCharacterDead;
         _mainCharacterController.GetSomeExp += GetSomeExp;
         _enemySpawner.CountOfEnemyChanged += CheckTheOfTheGame;
     }
@@ -51,11 +81,21 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void GetSomeExp(int exp)
+    private void GetSomeExp(int exp,CharacterData characterData)
     {
+        bool isNotEnemy = characterData.GetComponent<PhotonView>();
+        if (isNotEnemy)
+            _matchStatistics.KillPlayers++;
+        else
+            _matchStatistics.KillEnemy++;
         _charactersLocalData.BattleResult.GainedExp += exp;
     }
 
+    private void SetMainCharacterDead(int obj,CharacterData characterData)
+    {
+        IsMainCharacterDead = true;
+    }
+    
     private void SynchronizeWithServer()
     {
         //PhotonNetwork.CurrentRoom.CustomProperties.Add("","");
@@ -64,21 +104,39 @@ public class GameController : MonoBehaviour
     private void CheckTheOfTheGame(int enemies)
     {
         Debug.Log("Enemy c: "+enemies);
+       
         if (enemies == 0)
         {
+            if (CheckTheOfTheGame(IsMainCharacterDead))
+            {
+                return;
+            }
             EndOfTheGame();
         }
+    }
+    private bool CheckTheOfTheGame(bool isDead)
+    {
+        Debug.Log("IsDead: "+isDead);
+        if (isDead)
+        {
+            EndOfTheGame();
+            return true;
+        }
+        return false;
     }
 
     private void EndOfTheGame()
     {
         //EndOfGame?.Invoke();
         AddScoreOfUser();
+        _uiSystem.EndGameUI.SetEndText(_matchStatistics,(PhotonLogin.GameType)
+            PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
         _uiSystem.EndGameUI.ShowEndUI();
     }
 
     private void AddScoreOfUser()
     {
+        _matchStatistics.Exp = _charactersLocalData.BattleResult.GainedExp;
         UpdateCharacterAfterGame();
         //PhotonNetwork.CurrentRoom.CustomProperties.Add("","");
     }

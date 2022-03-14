@@ -11,7 +11,7 @@ namespace Controllers
         [SerializeField] private double timer = 1;
         [SerializeField] private TMP_Text _text;
         [SerializeField] private List<DateTime> _dateTimeColapces;
-        private DateTime date;
+        //private DateTime date;
         private bool startTimer = false;
         private double timerIncrementValue;
         private double startTime;
@@ -31,6 +31,7 @@ namespace Controllers
             }
             else
             {
+                //TODO: SOME ERROR
                 startTime = double.Parse(PhotonNetwork.CurrentRoom.CustomProperties["StartTime"].ToString());
                 startTimer = true;
             }
@@ -42,13 +43,15 @@ namespace Controllers
             timerIncrementValue = PhotonNetwork.Time - startTime;
             if (timerIncrementValue >= timer)
             {
-                var newMil =timerIncrementValue - (date.Hour*60*60+date.Minute*60+date.Second);
+                TimeSpan time = TimeSpan.FromSeconds(timerIncrementValue);
+                
+                /*var newMil =timerIncrementValue - (date.Hour*60*60+date.Minute*60+date.Second);
                 if (newMil >= 0)
-                    date = date.AddSeconds(newMil);
-                _text.text = date.ToLongTimeString();
+                    date = date.AddSeconds(newMil);*/
+                _text.text = time.ToString(@"hh\:mm\:ss");
                 if (_dateTimeColapces!=null)
                     if (epoxe<_dateTimeColapces.Count)
-                        if (_dateTimeColapces[epoxe].Minute == date.Minute)
+                        if (_dateTimeColapces[epoxe].Minute == time.Minutes)
                         {
                             GiveDateTime?.Invoke(epoxe);
                             epoxe++;

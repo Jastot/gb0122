@@ -7,6 +7,7 @@ namespace Data
     public class CharactersLocalData: ScriptableObject
     {
         public string CurrentCharacter;
+        public string InRoomId;
         public Dictionary<string, int> CharacterStatistics = new Dictionary<string, int>();
         public BattleResult BattleResult;
     }

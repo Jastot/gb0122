@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Timers;
 using CreatorKitCode;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace CreatorKitCodeInternal {
@@ -17,14 +12,14 @@ namespace CreatorKitCodeInternal {
         AnimationControllerDispatcher.IFootstepFrameReceiver
     {
         public static CharacterControl Instance { get; protected set; }
-    
+        public GameObject TeamMaterial;
         public float Speed = 10.0f;
 
         public CharacterData Data => m_CharacterData;
         public CharacterData CurrentTarget => m_CurrentTargetCharacterData;
         private CharacterData LastTarget = null;
         private bool currentTargetConnected=false;
-        public event Action<int> GetSomeExp; 
+        public event Action<int,CharacterData> GetSomeExp; 
         public Transform WeaponLocator;
     
         [Header("Audio")]
@@ -155,7 +150,7 @@ namespace CreatorKitCodeInternal {
                 m_KOTimer += Time.deltaTime;
                 if (m_KOTimer > 3.0f)
                 {
-                    GoToRespawn();
+                    //GoToRespawn();
                 }
 
                 return;
@@ -173,7 +168,7 @@ namespace CreatorKitCodeInternal {
                 m_Agent.ResetPath();
                 m_IsKO = true;
                 m_KOTimer = 0.0f;
-            
+                m_CurrentTargetCharacterData.DeathRattle -= GetExp;
                 Data.Death();
             
                 m_CharacterAudio.Death(pos);
@@ -278,7 +273,7 @@ namespace CreatorKitCodeInternal {
 
         private void GetExp(int obj,CharacterData characterData)
         {
-            GetSomeExp?.Invoke(obj);
+            GetSomeExp?.Invoke(obj,characterData);
         }
 
         void GoToRespawn()
@@ -289,7 +284,7 @@ namespace CreatorKitCodeInternal {
             m_Agent.isStopped = true;
             m_Agent.ResetPath();
             m_IsKO = false;
-            m_CurrentTargetCharacterData.DeathRattle -= GetExp;
+            
             m_CurrentTargetCharacterData = null;
             m_TargetInteractable = null;
 
