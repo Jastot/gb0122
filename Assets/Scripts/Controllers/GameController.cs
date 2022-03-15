@@ -47,24 +47,37 @@ public class GameController : MonoBehaviour
             {
                 _mainCharacterController = controller;
             }
-            foreach (var player in PhotonNetwork.PlayerList)
-            {
-                var r = controller.GetComponent<PhotonView>();
-                if (r.Controller.UserId == player.UserId)
-                {
-                    int playerColor = (int)player.CustomProperties["Color"];
-                    switch (playerColor)
-                    {
-                        case 0:
-                            controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.red;
-                            break;
-                        case 1:
-                            controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
-                            break;
-                    }
-                    return;
-                }
 
+            if (PhotonLogin.GameType.TwoTeams==(PhotonLogin.GameType)
+                PhotonNetwork.CurrentRoom.CustomProperties["GameType"])
+                foreach (var player in PhotonNetwork.PlayerList)
+                {
+                    var r = controller.GetComponent<PhotonView>();
+                    if (r.Controller.UserId == player.UserId)
+                    {
+                        int playerColor = (int)player.CustomProperties["Color"];
+                        switch (playerColor)
+                        {
+                            case 0:
+                                controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.red;
+                                break;
+                            case 1:
+                                controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
+                                break;
+                        }
+                        break;
+                    }
+                }
+            else
+            {
+                foreach (var player in PhotonNetwork.PlayerList)
+                {
+                    var r = controller.GetComponent<PhotonView>();
+                    if (r.Controller.UserId == player.UserId)
+                    {
+                        controller.TeamMaterial.SetActive(false);
+                    }
+                }
             }
         }    
         

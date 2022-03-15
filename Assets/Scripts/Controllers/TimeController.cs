@@ -18,8 +18,8 @@ namespace Controllers
         private int epoxe = 0;
         ExitGames.Client.Photon.Hashtable CustomeValue;
         public event Action<int> GiveDateTime;
-        
-        void Start()
+
+        private void Awake()
         {
             if (PhotonNetwork.IsMasterClient)
             {
@@ -29,10 +29,13 @@ namespace Controllers
                 CustomeValue.Add("StartTime", startTime);
                 PhotonNetwork.CurrentRoom.SetCustomProperties(CustomeValue);
             }
-            else
+        }
+
+        void Start()
+        {
+            if (!PhotonNetwork.IsMasterClient)
             {
-                //TODO: SOME ERROR
-                startTime = double.Parse(PhotonNetwork.CurrentRoom.CustomProperties["StartTime"].ToString());
+                startTime = (double)PhotonNetwork.CurrentRoom.CustomProperties["StartTime"];
                 startTimer = true;
             }
         }

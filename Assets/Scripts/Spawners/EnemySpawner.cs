@@ -42,8 +42,6 @@ public class EnemySpawner : MonoBehaviour
                 {
                     s += VARIABLE + " ";
                 }
-
-                Debug.Log(s);
             }
 
             SpawnEnemies();

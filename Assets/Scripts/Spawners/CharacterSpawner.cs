@@ -10,9 +10,10 @@ public class CharacterSpawner : MonoBehaviour
 	[SerializeField] private List<Transform> _spawnPointsTwoTeams;
 	[SerializeField] private List<Transform> _spawnPointsHateAll;
 	[SerializeField] private CharactersLocalData _charactersLocalData;
+	[HideInInspector]
 	public PhotonLogin.GameType GameType;
 	
-	private void Awake()
+	public void Awake()
 	{
 		GameType = (PhotonLogin.GameType)
 			PhotonNetwork.CurrentRoom.CustomProperties["GameType"];
@@ -21,7 +22,7 @@ public class CharacterSpawner : MonoBehaviour
 		{
 			if (_charactersLocalData.InRoomId == player.UserId)
 			{
-				return;
+				break;
 			}
 			count++;
 		}

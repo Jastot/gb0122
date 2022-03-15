@@ -119,7 +119,6 @@ public class CharacterManager : MonoBehaviour
         }
         foreach (var character in _characterResult.Characters)
         {
-            Debug.Log(character.CharacterName);
             CharactersButtons.Add(Instantiate(_characterPrefab, _parent));
             var texts = CharactersButtons.Last().GetComponentsInChildren<Text>();
             texts[0].text = character.CharacterName;
