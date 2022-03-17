@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Timers;
 using CreatorKitCodeInternal;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -115,8 +116,8 @@ namespace CreatorKitCode
             //if the item have a world object prefab set use that...
             if (Item.WorldObjectPrefab != null)
             {
-                var obj = Instantiate(Item.WorldObjectPrefab, transform, false);
-                obj.transform.localPosition = Vector3.zero;
+                var obj = PhotonNetwork.InstantiateRoomObject(Item.WorldObjectPrefab.name, transform.position,transform.rotation);
+                //obj.transform.localPosition = Vector3.zero;
                 obj.layer = LayerMask.NameToLayer("Interactable");
             }
             else
