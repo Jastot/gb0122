@@ -103,5 +103,6 @@ namespace CreatorKitCode
                 rend.SetPropertyBlock(m_PropertyBlock);
             }
         }
+        
     }
 }

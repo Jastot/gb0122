@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Data;
 using PlayFab;
 using PlayFab.ClientModels;
+using PlayFab.Internal;
 using UnityEngine;
 using View;
 
@@ -14,6 +16,7 @@ namespace Controllers
         [SerializeField] private ShopUI _shopUI;
         [SerializeField] private TimeController _timeController;
         [SerializeField] private EnemySpawner _enemySpawner;
+        [SerializeField] private UsefulPlayerInfoForShop _playerInfo;
         private List<ShopView> _shopViews;
         private List<CatalogItemsElement> _shopItemList;
         private float IsCountOfEnemyLowCoefficient = 1f;
@@ -53,15 +56,24 @@ namespace Controllers
             {
                 HandleStore(result.Store);
                 AddMoreGreedForItemInShop(shopView);
+                foreach (var catalog in _shopItemList)
+                {
+                    catalog.BuyItem += LookAtBuyNewItem;
+                }
                 _shopUI.gameObject.SetActive(true);
             }, Debug.LogError);
         }
 
         public void DeactivateStore()
         {
+            foreach (var catalog in _shopItemList)
+            {
+                catalog.BuyItem -= LookAtBuyNewItem;
+            }
             _shopItemList.Clear();
             ClearUI();
             _shopUI.gameObject.SetActive(false);
+            
         }
 
         private void ClearUI()
@@ -83,6 +95,24 @@ namespace Controllers
             }
         }
 
+        private void LookAtBuyNewItem(Tuple<int,float> differenceBetweenPrices)
+        {
+            if (Convert.ToInt32(differenceBetweenPrices.Item2-differenceBetweenPrices.Item1) != 0)
+                PlayFabClientAPI.SubtractUserVirtualCurrency(new SubtractUserVirtualCurrencyRequest
+                {
+                    Amount = Convert.ToInt32(differenceBetweenPrices.Item2-differenceBetweenPrices.Item1),
+                    VirtualCurrency = "GD",
+                    AuthenticationContext = _playerInfo.AuthenticationContext,
+                },
+                resultCallback =>
+                {
+                    Debug.Log("!!!!!!");
+                }, error =>
+                {
+                    Debug.Log(error.ErrorMessage);
+                });
+        }
+        
         private void AllShopsEconomicControl(int economicCoefficient)
         {
             foreach (var shop in _shopViews)

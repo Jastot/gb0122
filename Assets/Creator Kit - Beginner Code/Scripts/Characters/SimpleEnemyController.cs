@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CreatorKitCode;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 namespace CreatorKitCodeInternal {
-    public class SimpleEnemyController : MonoBehaviour, 
+    public class SimpleEnemyController : MonoBehaviourPun, 
         AnimationControllerDispatcher.IAttackFrameReceiver,
         AnimationControllerDispatcher.IFootstepFrameReceiver
     {
@@ -15,7 +18,10 @@ namespace CreatorKitCodeInternal {
             PURSUING,
             ATTACKING
         }
-    
+
+        private List<CharacterControl> _playersInGame;
+        private CharacterData _playerData = null;
+        private CharacterControl _playerPosition = null;
         public float Speed = 6.0f;
         public float detectionRadius = 10.0f;
 
@@ -43,7 +49,7 @@ namespace CreatorKitCodeInternal {
         {
             m_Animator = GetComponentInChildren<Animator>();
             m_Agent = GetComponent<NavMeshAgent>();
-        
+            
             m_SpeedAnimHash = Animator.StringToHash("Speed");
             m_AttackAnimHash = Animator.StringToHash("Attack");
             m_DeathAnimHash = Animator.StringToHash("Death");
@@ -58,6 +64,7 @@ namespace CreatorKitCodeInternal {
             {
                 m_Animator.SetTrigger(m_HitAnimHash);
                 m_CharacterAudio.Hit(transform.position);
+                GetComponent<PhotonView>().RPC("SyncHP", RpcTarget.OthersBuffered, m_CharacterData.Stats.CurrentHealth);
             };
         
             m_Agent.speed = Speed;
@@ -65,15 +72,20 @@ namespace CreatorKitCodeInternal {
             m_LootSpawner = GetComponent<LootSpawner>();
         
             m_StartingAnchor = transform.position;
+            _playersInGame = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
         }
 
+        
+        
         // Update is called once per frame
         void Update()
         {
             //See the Update function of CharacterControl.cs for a comment on how we could replace
             //this (polling health) to a callback method.
+            //TODO: проверить
             if (m_CharacterData.Stats.CurrentHealth == 0)
             {
+                Debug.Log("Current health: "+ m_CharacterData.Stats.CurrentHealth);
                 m_Animator.SetTrigger(m_DeathAnimHash);
             
                 m_CharacterAudio.Death(transform.position);
@@ -86,42 +98,42 @@ namespace CreatorKitCodeInternal {
                 Destroy(this);
                 return;
             }
-        
-            //NOTE : in a full game, this would use a targetting system that would give the closest target
-            //of the opposing team (e.g. multiplayer or player owned pets). Here for simplicity we just reference
-            //directly the player.
-            Vector3 playerPosition = CharacterControl.Instance.transform.position;
-            CharacterData playerData = CharacterControl.Instance.Data;
-        
             switch (m_State)
             {
                 case State.IDLE:
                 {
-                    if (Vector3.SqrMagnitude(playerPosition - transform.position) < detectionRadius * detectionRadius)
+                    foreach (var characterControl in _playersInGame)
                     {
-                        if (SpottedAudioClip.Length != 0)
+                        if (Vector3.SqrMagnitude(characterControl.gameObject.transform.position -transform.position) <
+                            detectionRadius * detectionRadius)
                         {
-                            SFXManager.PlaySound(SFXManager.Use.Enemies, new SFXManager.PlayData()
+                            if (SpottedAudioClip.Length != 0)
                             {
-                                Clip = SpottedAudioClip[Random.Range(0, SpottedAudioClip.Length)],
-                                Position = transform.position
-                            });
-                        }
+                                SFXManager.PlaySound(SFXManager.Use.Enemies, new SFXManager.PlayData()
+                                {
+                                    Clip = SpottedAudioClip[Random.Range(0, SpottedAudioClip.Length)],
+                                    Position = transform.position
+                                });
+                            }
 
-                        m_PursuitTimer = 4.0f;
-                        m_State = State.PURSUING;
-                        m_Agent.isStopped = false;
+                            m_PursuitTimer = 4.0f;
+                            m_State = State.PURSUING;
+                            m_Agent.isStopped = false;
+                            _playerPosition = characterControl;
+                            _playerData = characterControl.Data;
+                            break;
+                        }
                     }
                 }
                     break;
                 case State.PURSUING:
                 {
-                    float distToPlayer = Vector3.SqrMagnitude(playerPosition - transform.position);
+                    float distToPlayer = Vector3.SqrMagnitude(_playerPosition.gameObject.transform.position - transform.position);
                     if (distToPlayer < detectionRadius * detectionRadius)
                     {
                         m_PursuitTimer = 4.0f;
 
-                        if (m_CharacterData.CanAttackTarget(playerData))
+                        if (m_CharacterData.CanAttackTarget(_playerData))
                         {
                             m_CharacterData.AttackTriggered();
                             m_Animator.SetTrigger(m_AttackAnimHash);
@@ -147,20 +159,20 @@ namespace CreatorKitCodeInternal {
                 
                     if (m_PursuitTimer > 0)
                     {
-                        m_Agent.SetDestination(playerPosition);
+                        m_Agent.SetDestination(_playerPosition.gameObject.transform.position);
                     }
                 }
                     break;
                 case State.ATTACKING:
                 {
-                    if (!m_CharacterData.CanAttackReach(playerData))
+                    if (!m_CharacterData.CanAttackReach(_playerData))
                     {
                         m_State = State.PURSUING;
                         m_Agent.isStopped = false;
                     }
                     else
                     {
-                        if (m_CharacterData.CanAttackTarget(playerData))
+                        if (m_CharacterData.CanAttackTarget(_playerData))
                         {
                             m_CharacterData.AttackTriggered();
                             m_Animator.SetTrigger(m_AttackAnimHash);
@@ -175,13 +187,11 @@ namespace CreatorKitCodeInternal {
 
         public void AttackFrame()
         {
-            CharacterData playerData = CharacterControl.Instance.Data;
-            
             //if we can't reach the player anymore when it's time to damage, then that attack miss.
-            if (!m_CharacterData.CanAttackReach(playerData))
+            if (!m_CharacterData.CanAttackReach(_playerData))
                 return;
             
-            m_CharacterData.Attack(playerData);
+            m_CharacterData.Attack(_playerData);
         }
 
         void OnDrawGizmosSelected()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using CreatorKitCode;
 using Photon.Pun;
 using UnityEngine;
@@ -9,12 +10,12 @@ using Random = UnityEngine.Random;
 namespace CreatorKitCodeInternal {
     public class CharacterControl : MonoBehaviourPun, 
         AnimationControllerDispatcher.IAttackFrameReceiver,
-        AnimationControllerDispatcher.IFootstepFrameReceiver
+        AnimationControllerDispatcher.IFootstepFrameReceiver, IPunObservable
     {
         public static CharacterControl Instance { get; protected set; }
         public GameObject TeamMaterial;
         public float Speed = 10.0f;
-
+        public int IsThisCharacterAttractable = -1;
         public CharacterData Data => m_CharacterData;
         public CharacterData CurrentTarget => m_CurrentTargetCharacterData;
         private CharacterData LastTarget = null;
@@ -53,7 +54,9 @@ namespace CreatorKitCodeInternal {
 
         CharacterAudio m_CharacterAudio;
         
-        int m_TargetLayer;
+        private int m_TargetLayer;
+        private int m_PlayerLayer;
+        //TODO: need fix
         CharacterData m_CurrentTargetCharacterData = null;
         //this is a flag that tell the controller it need to clear the target once the attack finished.
         //usefull for when clicking elwswhere mid attack animation, allow to finish the attack and then exit.
@@ -75,13 +78,13 @@ namespace CreatorKitCodeInternal {
             Instance = this;
             m_MainCamera = Camera.main;
         }
-
+        
         // Start is called before the first frame update
         void Start()
         {
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 60;
-        
+            LootUI.Instance.m_CharacterControl.Add(this);
             m_CalculatedPath = new NavMeshPath();
         
             m_Agent = GetComponent<NavMeshAgent>();
@@ -123,7 +126,8 @@ namespace CreatorKitCodeInternal {
             m_InteractableLayer = 1 << LayerMask.NameToLayer("Interactable");
             m_LevelLayer = 1 << LayerMask.NameToLayer("Level");
             m_TargetLayer = 1 << LayerMask.NameToLayer("Target");
-
+            m_PlayerLayer = 1 << LayerMask.NameToLayer("Player");
+            
             m_CurrentState = State.DEFAULT;
 
             m_CharacterAudio = GetComponent<CharacterAudio>();
@@ -132,49 +136,50 @@ namespace CreatorKitCodeInternal {
             {
                 m_Animator.SetTrigger(m_HitParamID);
                 m_CharacterAudio.Hit(transform.position);
+                GetComponent<PhotonView>().RPC("SyncHP", RpcTarget.OthersBuffered, m_CharacterData.Stats.CurrentHealth);
             };
         }
 
         // Update is called once per frame
         void Update()
         {
+            
+            if (m_IsKO)
+            {
+                // m_KOTimer += Time.deltaTime;
+                // if (m_KOTimer > 3.0f)
+                // {
+                //     //GoToRespawn();
+                // }
+
+                return;
+            }
+            
+            Vector3 pos = transform.position;
+            
+            if (m_CharacterData.Stats.CurrentHealth == 0)
+            {
+                m_Animator.SetTrigger(m_FaintParamID);
+                m_Agent.isStopped = true;
+                m_Agent.ResetPath();
+                m_IsKO = true;
+                m_KOTimer = 0.0f;
+                Data.Death();
+                
+                m_CharacterAudio.Death(pos);
+            
+                return;
+            }
             if (!photonView.IsMine && PhotonNetwork.IsConnected)
             {
                 return;
             }
             
-            Vector3 pos = transform.position;
-        
-            if (m_IsKO)
-            {
-                m_KOTimer += Time.deltaTime;
-                if (m_KOTimer > 3.0f)
-                {
-                    //GoToRespawn();
-                }
-
-                return;
-            }
-
             //The update need to run, so we can check the health here.
             //Another method would be to add a callback in the CharacterData that get called
             //when health reach 0, and this class register to the callback in Start
             //(see CharacterData.OnDamage for an example)
-            if (m_CharacterData.Stats.CurrentHealth == 0)
-            {
-                m_Animator.SetTrigger(m_FaintParamID);
-
-                m_Agent.isStopped = true;
-                m_Agent.ResetPath();
-                m_IsKO = true;
-                m_KOTimer = 0.0f;
-                m_CurrentTargetCharacterData.DeathRattle -= GetExp;
-                Data.Death();
             
-                m_CharacterAudio.Death(pos);
-            
-                return;
-            }
         
             Ray screenRay = CameraController.Instance.GameplayCamera.ScreenPointToRay(Input.mousePosition);
         
@@ -276,6 +281,45 @@ namespace CreatorKitCodeInternal {
             GetSomeExp?.Invoke(obj,characterData);
         }
 
+        [PunRPC]
+        private void SetTeamOrOffIt(int gametype)
+        {
+            var gt = (PhotonLogin.GameType)gametype;
+            foreach (var player in PhotonNetwork.PlayerList)
+            {
+                foreach (var character in FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList())
+                {
+                    var currentPhotonView = character.photonView;
+                    if (currentPhotonView.Controller.UserId == player.UserId)
+                    {
+                        if (gt == PhotonLogin.GameType.TwoTeams)
+                        {
+                            int playerColor = (int) player.CustomProperties["Color"];
+                            switch (playerColor)
+                            {
+                                case 0:
+                                    character.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.red;
+                                    
+                                    break;
+                                case 1:
+                                    character.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
+                                    break;
+                            }
+                            character.IsThisCharacterAttractable = playerColor;
+                            break;
+                        }
+                        else
+                        {
+                     
+                            character.TeamMaterial.SetActive(false);
+                            character.IsThisCharacterAttractable = -1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
         void GoToRespawn()
         {
             m_Animator.ResetTrigger(m_HitParamID);
@@ -317,7 +361,7 @@ namespace CreatorKitCodeInternal {
             else
             {
                 count = Physics.SphereCastNonAlloc(screenRay, 1.0f, m_RaycastHitCache, 1000.0f, m_TargetLayer);
-
+                
                 if (count > 0)
                 {
                     CharacterData data = m_RaycastHitCache[0].collider.GetComponentInParent<CharacterData>();
@@ -325,6 +369,22 @@ namespace CreatorKitCodeInternal {
                     {
                         SwitchHighlightedObject(data);
                         somethingFound = true;
+                    }
+                }
+                else
+                {
+                    count = Physics.SphereCastNonAlloc(screenRay, 1.0f, m_RaycastHitCache, 1000.0f, m_PlayerLayer);
+                
+                    if (count > 0)
+                    {
+                        CharacterControl data = m_RaycastHitCache[0].collider.GetComponentInParent<CharacterControl>();
+                        if (data != null && 
+                            (data.IsThisCharacterAttractable == -1 ||
+                             data.IsThisCharacterAttractable != this.IsThisCharacterAttractable))
+                        {
+                            m_Highlighted = data.Data;
+                            somethingFound = true;
+                        }
                     }
                 }
             }
@@ -337,10 +397,12 @@ namespace CreatorKitCodeInternal {
 
         void SwitchHighlightedObject(HighlightableObject obj)
         {
-            if(m_Highlighted != null) m_Highlighted.Dehighlight();
+            if(m_Highlighted != null) 
+                m_Highlighted.Dehighlight();
 
             m_Highlighted = obj;
-            if(m_Highlighted != null) m_Highlighted.Highlight();
+            if(m_Highlighted != null) 
+                m_Highlighted.Highlight();
         }
 
         void MoveCheck(Ray screenRay)
@@ -373,7 +435,6 @@ namespace CreatorKitCodeInternal {
         {
             if(m_CurrentState == State.ATTACKING)
                 return;
-        
             Vector3 distance = m_TargetCollider.ClosestPointOnBounds(transform.position) - transform.position;
         
             
@@ -463,9 +524,11 @@ namespace CreatorKitCodeInternal {
 
         public void InteractWith(InteractableObject obj)
         {
-            if (obj.IsInteractable)
+            if (obj.IsInteractable && photonView.IsMine)
             {
-                m_TargetCollider = obj.GetComponentInChildren<Collider>();
+                var loot = (Loot) obj;
+                m_TargetCollider = loot.GetCurrentPUNObject().GetComponent<Collider>();
+                //m_TargetCollider = obj.GetComponentInChildren<Collider>();
                 m_TargetInteractable = obj;
                 m_Agent.SetDestination(obj.transform.position);
             }
@@ -488,5 +551,12 @@ namespace CreatorKitCodeInternal {
         
             VFXManager.PlayVFX(VFXType.StepPuff, pos);  
         }
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+           
+        }
+        
+        
     }
 }

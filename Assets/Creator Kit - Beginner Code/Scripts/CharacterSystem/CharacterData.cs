@@ -11,7 +11,7 @@ namespace CreatorKitCode
     /// This defines a character in the game. The name Character is used in a loose sense, it just means something that
     /// can be attacked and have some stats including health. It could also be an inanimate object like a breakable box.
     /// </summary>
-    public class CharacterData : HighlightableObject, IPunObservable,ICanGiveExp
+    public class CharacterData : HighlightableObject,IPunObservable,ICanGiveExp
     {
         public string CharacterName;
 
@@ -61,6 +61,7 @@ namespace CreatorKitCode
             Animator anim = GetComponentInChildren<Animator>();
             if (anim != null)
                 SceneLinkedSMB<CharacterData>.Initialise(anim, this);
+            PhotonNetwork.AddCallbackTarget(this);
         }
 
         // Update is called once per frame
@@ -108,14 +109,11 @@ namespace CreatorKitCode
         /// <summary>
         /// Call when the character die (health reach 0).
         /// </summary>
-
-        private bool IsDead= false;
         public void Death()
         {
-            Debug.Log("Death");
             GiveExpForPlayer();
-            /*IsDead = true;*/
             Stats.Death();
+            PhotonNetwork.RemoveCallbackTarget(this);
         }
 
         /// <summary>
@@ -159,23 +157,26 @@ namespace CreatorKitCode
             }
         
             Stats.Damage(attackData);
-            
             OnDamage?.Invoke();
         }
         
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
-            if (stream.IsWriting)
-            {
-                stream.SendNext(Stats.stats.health);
-            }
-            else
-            {
-                Stats.stats.health = (int)stream.ReceiveNext();
-            }
+            // if (stream.IsWriting)
+            // {
+            //     stream.SendNext(Stats.CurrentHealth);
+            // }
+            // else if (stream.IsReading)
+            // {
+            //     Stats.CurrentHealth = (int) stream.ReceiveNext();
+            // }
         }
 
-         
+        [PunRPC]
+        private void SyncHP(int statsHealth)
+        {
+            Stats.CurrentHealth = statsHealth;
+        }
         
         private void GiveExpForPlayer()
         { 

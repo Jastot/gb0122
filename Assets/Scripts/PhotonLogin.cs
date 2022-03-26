@@ -19,9 +19,10 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     [SerializeField] private Transform _parentListRoom;
     [SerializeField] private CharactersLocalData _charactersLocalData;
     
-    [Header("Creating room elements")] 
+    [Header("MatchMaking")] 
     [SerializeField] private Text _playersCounter;
     [SerializeField] private TMP_Text _yourTeamIs;
+    [SerializeField] private Button _startGameButton;
     
     [Header("Creating room elements")] 
     [SerializeField] private TMP_InputField _inputFieldRoomName;
@@ -123,6 +124,12 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     {
         _menu.SetActive(false);
         _mm.SetActive(true);
+        if (!PhotonNetwork.IsMasterClient)
+            _startGameButton.gameObject.SetActive(false);
+        else
+            _startGameButton.gameObject.SetActive(true);
+        
+        
         _playersCounter.text = $"{PhotonNetwork.CurrentRoom.Players.Count} / {PhotonNetwork.CurrentRoom.MaxPlayers}";
         currentPlayer = PhotonNetwork.PlayerList.Last().UserId;
         if ((GameType)PhotonNetwork.CurrentRoom.CustomProperties["GameType"] == GameType.TwoTeams)
@@ -219,6 +226,7 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         /*Dictionary<string,int> obj = new Dictionary<string,int>();
         hashtable.Add("PlayersObjs",obj);
         */
+        hashtable.Add("Timer",(double)0);
         options.CustomRoomProperties = hashtable;
         //options.PublishUserId = true;
         PhotonNetwork.CreateRoom(_roomName, options);

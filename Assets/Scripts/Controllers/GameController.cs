@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using CreatorKitCode;
 using CreatorKitCodeInternal;
 using Data;
@@ -46,39 +47,12 @@ public class GameController : MonoBehaviour
             if (controller.GetComponent<PhotonView>().IsMine)
             {
                 _mainCharacterController = controller;
+                _mainCharacterController.photonView.RPC("SetTeamOrOffIt",RpcTarget.All,
+                    (int)
+                    PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
             }
-
-            if (PhotonLogin.GameType.TwoTeams==(PhotonLogin.GameType)
-                PhotonNetwork.CurrentRoom.CustomProperties["GameType"])
-                foreach (var player in PhotonNetwork.PlayerList)
-                {
-                    var r = controller.GetComponent<PhotonView>();
-                    if (r.Controller.UserId == player.UserId)
-                    {
-                        int playerColor = (int)player.CustomProperties["Color"];
-                        switch (playerColor)
-                        {
-                            case 0:
-                                controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.red;
-                                break;
-                            case 1:
-                                controller.TeamMaterial.GetComponent<MeshRenderer>().materials[0].color = Color.blue;
-                                break;
-                        }
-                        break;
-                    }
-                }
-            else
-            {
-                foreach (var player in PhotonNetwork.PlayerList)
-                {
-                    var r = controller.GetComponent<PhotonView>();
-                    if (r.Controller.UserId == player.UserId)
-                    {
-                        controller.TeamMaterial.SetActive(false);
-                    }
-                }
-            }
+            
+            
         }    
         
         _mainCharacterController.Data.DeathRattle += SetMainCharacterDead;
@@ -96,7 +70,7 @@ public class GameController : MonoBehaviour
 
     private void GetSomeExp(int exp,CharacterData characterData)
     {
-        bool isNotEnemy = characterData.GetComponent<PhotonView>();
+        bool isNotEnemy = characterData.GetComponent<CharacterControl>();
         if (isNotEnemy)
             _matchStatistics.KillPlayers++;
         else
@@ -108,40 +82,35 @@ public class GameController : MonoBehaviour
     {
         IsMainCharacterDead = true;
     }
-    
-    private void SynchronizeWithServer()
-    {
-        //PhotonNetwork.CurrentRoom.CustomProperties.Add("","");
-    }
 
     private void CheckTheOfTheGame(int enemies)
     {
         Debug.Log("Enemy c: "+enemies);
-       
+        //TODO: переработать условие
         if (enemies == 0)
         {
             if (CheckTheOfTheGame(IsMainCharacterDead))
             {
                 return;
             }
-            EndOfTheGame();
+            EndOfTheGame(false);
         }
     }
     private bool CheckTheOfTheGame(bool isDead)
     {
-        Debug.Log("IsDead: "+isDead);
         if (isDead)
         {
-            EndOfTheGame();
+            EndOfTheGame(isDead);
             return true;
         }
         return false;
     }
 
-    private void EndOfTheGame()
+    private void EndOfTheGame(bool isDead)
     {
         //EndOfGame?.Invoke();
-        AddScoreOfUser();
+        if(!isDead) 
+            AddScoreOfUser();
         _uiSystem.EndGameUI.SetEndText(_matchStatistics,(PhotonLogin.GameType)
             PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
         _uiSystem.EndGameUI.ShowEndUI();

@@ -90,7 +90,6 @@ public class EnemySpawner : MonoBehaviour
     private void LessEnemy(int s,CharacterData characterData)
     {
         _allCountOfEnemy--;
-        Debug.Log("Enemy count: "+_allCountOfEnemy);
         CountOfEnemyChanged?.Invoke(_allCountOfEnemy);
     }
 

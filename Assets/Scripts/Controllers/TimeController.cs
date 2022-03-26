@@ -23,11 +23,12 @@ namespace Controllers
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                CustomeValue = new ExitGames.Client.Photon.Hashtable();
+                //CustomeValue = new ExitGames.Client.Photon.Hashtable();
                 startTime = PhotonNetwork.Time;
                 startTimer = true;
-                CustomeValue.Add("StartTime", startTime);
-                PhotonNetwork.CurrentRoom.SetCustomProperties(CustomeValue);
+                ExitGames.Client.Photon.Hashtable prop = new ExitGames.Client.Photon.Hashtable();
+                prop.Add("Timer", timerIncrementValue);
+                PhotonNetwork.CurrentRoom.SetCustomProperties(prop);
             }
         }
 
@@ -35,7 +36,7 @@ namespace Controllers
         {
             if (!PhotonNetwork.IsMasterClient)
             {
-                startTime = (double)PhotonNetwork.CurrentRoom.CustomProperties["StartTime"];
+                startTime = (double)PhotonNetwork.CurrentRoom.CustomProperties["Timer"];
                 startTimer = true;
             }
         }
@@ -43,22 +44,30 @@ namespace Controllers
         void Update()
         {
             if (!startTimer) return;
-            timerIncrementValue = PhotonNetwork.Time - startTime;
-            if (timerIncrementValue >= timer)
+            if (PhotonNetwork.IsMasterClient)
             {
+                timerIncrementValue = PhotonNetwork.Time - startTime;
+                if (timerIncrementValue >= timer)
+                {
+                    TimeSpan time = TimeSpan.FromSeconds(timerIncrementValue);
+                    _text.text = time.ToString(@"hh\:mm\:ss");
+                    ExitGames.Client.Photon.Hashtable prop = new ExitGames.Client.Photon.Hashtable();
+                    prop.Add("Timer", timerIncrementValue);
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(prop);
+                    if (_dateTimeColapces != null)
+                        if (epoxe < _dateTimeColapces.Count)
+                            if (_dateTimeColapces[epoxe].Minute == time.Minutes)
+                            {
+                                GiveDateTime?.Invoke(epoxe);
+                                epoxe++;
+                            }
+                }
+            }
+            else
+            {
+                timerIncrementValue = (double) PhotonNetwork.CurrentRoom.CustomProperties["Timer"];
                 TimeSpan time = TimeSpan.FromSeconds(timerIncrementValue);
-                
-                /*var newMil =timerIncrementValue - (date.Hour*60*60+date.Minute*60+date.Second);
-                if (newMil >= 0)
-                    date = date.AddSeconds(newMil);*/
                 _text.text = time.ToString(@"hh\:mm\:ss");
-                if (_dateTimeColapces!=null)
-                    if (epoxe<_dateTimeColapces.Count)
-                        if (_dateTimeColapces[epoxe].Minute == time.Minutes)
-                        {
-                            GiveDateTime?.Invoke(epoxe);
-                            epoxe++;
-                        }
             }
         }
     }

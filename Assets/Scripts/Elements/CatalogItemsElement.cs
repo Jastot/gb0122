@@ -13,12 +13,14 @@ public class CatalogItemsElement : MonoBehaviour
     private float _price;
     private StoreItem _item;
 
+    public event Action<Tuple<int,float>> BuyItem;
+    
     public void SetItem(CatalogItem item)
     {
         itemName.text = item.DisplayName;
-        if (item.VirtualCurrencyPrices.ContainsKey("GD"))
+        if (item.VirtualCurrencyPrices.ContainsKey("GC"))
         {
-            price.text = item.VirtualCurrencyPrices["GD"].ToString();
+            price.text = item.VirtualCurrencyPrices["GC"].ToString();
         }
     }
     
@@ -26,10 +28,10 @@ public class CatalogItemsElement : MonoBehaviour
     {
         _item = item;
         itemName.text = item.ItemId;
-        if (item.VirtualCurrencyPrices.ContainsKey("GD"))
+        if (item.VirtualCurrencyPrices.ContainsKey("GC"))
         {
-            _price = item.VirtualCurrencyPrices["GD"];
-            price.text = item.VirtualCurrencyPrices["GD"].ToString();
+            _price = item.VirtualCurrencyPrices["GC"];
+            price.text = item.VirtualCurrencyPrices["GC"].ToString();
         }
     }
     
@@ -44,20 +46,21 @@ public class CatalogItemsElement : MonoBehaviour
         price.text = _price.ToString();
     }
     
-    public void MakePurchase(int vc)
+    public void MakePurchase()
     {
-        // вызов магазина, в который вкладывается покупаемый итем
-        if (vc > 10)
+        //TODO: Заглушить псевдо-покупку в инвентаре
+        PlayFabClientAPI.PurchaseItem(new PurchaseItemRequest
         {
-            //TODO:
-            PlayFabClientAPI.PurchaseItem(new PurchaseItemRequest
-            {
                 ItemId = _item.ItemId,
-                Price = Convert.ToInt32(_item.VirtualCurrencyPrices["GD"]),
-                VirtualCurrency = "GD"
-            }, result => { }, Debug.LogError);
-            //PlayFabClientAPI.SubtractUserVirtualCurrency(); 
-        }
-        
+                Price = Convert.ToInt32(_item.VirtualCurrencyPrices["GC"]),
+                VirtualCurrency = "GC"
+        }, 
+            result => { 
+                Tuple<int, float> returnInfo = new Tuple<int, float>(
+                Convert.ToInt32(_item.VirtualCurrencyPrices["GC"]),
+                _price);
+                BuyItem?.Invoke(returnInfo);
+            },
+            Debug.LogError);
     }
 }

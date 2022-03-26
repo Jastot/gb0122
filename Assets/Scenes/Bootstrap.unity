@@ -212,6 +212,7 @@ MonoBehaviour:
   loadingPanel: {fileID: 2014743975}
   loginErrorLabel: {fileID: 970351191}
   createAccountErrorLabel: {fileID: 1858753119}
+  _playerInfo: {fileID: 11400000, guid: 800218c44e0c4824b84b5cb8f6886f9d, type: 2}
 --- !u!1 &321810498 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7263193345457430394, guid: 3fc883ed063efea4cb6447d34f0b33b0,

@@ -101,6 +101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TeamMaterial: {fileID: 6228001693220042584}
   Speed: 10
+  IsThisCharacterAttractable: -1
   WeaponLocator: {fileID: 8136415202365550156}
   SpurSoundClips:
   - {fileID: 8300000, guid: daa761ef6c428a344b4858008944ac86, type: 3}
@@ -223,6 +224,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
+  - {fileID: 5549394745342254541}
   - {fileID: 5549394745342254537}
   - {fileID: 6056505254313309964}
   sceneViewId: 0
@@ -243,7 +245,7 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
-  m_UseLocal: 1
+  m_UseLocal: 0
 --- !u!1 &6228001693220042584
 GameObject:
   m_ObjectHideFlags: 0

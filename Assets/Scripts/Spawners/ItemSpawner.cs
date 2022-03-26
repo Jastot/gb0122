@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CreatorKitCode;
 using Elements;
 using Factories;
 using Photon.Pun;
@@ -20,7 +21,9 @@ namespace Spawners
                 foreach (var itemsType in ItemToSpawnElements)
                 {
                     for (int i = 0; i < itemsType.ItemsCount; i++)
-                        _itemFactory.SpawnItem(itemsType.ItemsTypes,itemsType.WherePlaceIt[i]);
+                    { 
+                        _itemFactory.SpawnItem(itemsType.ItemsTypes, itemsType.WherePlaceIt[i]); ;
+                    }
                 }
             }
         }

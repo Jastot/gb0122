@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Data;
 using PlayFab;
 using PlayFab.ClientModels;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class PlayFabLogin : MonoBehaviour
     [SerializeField] private GameObject loadingPanel;
     [SerializeField] private Text loginErrorLabel;
     [SerializeField] private Text createAccountErrorLabel;
+    [SerializeField] private UsefulPlayerInfoForShop _playerInfo;
     
     private string _username;
     private string _mail;
@@ -62,6 +64,7 @@ public class PlayFabLogin : MonoBehaviour
             Debug.Log($"Login Success: {result.PlayFabId}");
             RememberCredentials(_username, _pass);
             OnLoginSuccess(result);
+            _playerInfo.AuthenticationContext = result.AuthenticationContext;
             SceneManager.LoadScene("MainProfile");
         }, OnFailure);
     }

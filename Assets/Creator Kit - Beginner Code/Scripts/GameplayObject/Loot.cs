@@ -19,8 +19,9 @@ namespace CreatorKitCode
     /// </summary>
     public class Loot : InteractableObject
     {
+        private GameObject PUNItem;
         static float AnimationTime = 0.5f;
-
+        public int ItemCount;
         public Item Item;
 
         public override bool IsInteractable => m_AnimationTimer >= AnimationTime;
@@ -72,6 +73,8 @@ namespace CreatorKitCode
             SFXManager.PlaySound(SFXManager.Use.Sound2D, new SFXManager.PlayData(){Clip = SFXManager.PickupSound});
         
             UISystem.Instance.InventoryWindow.Load(target);
+            LootUI.Instance.DestroyUI(this);
+            PhotonNetwork.Destroy(PUNItem);
             Destroy(gameObject);
         }
 
@@ -113,34 +116,61 @@ namespace CreatorKitCode
 
         void CreateWorldRepresentation()
         {
-            //if the item have a world object prefab set use that...
-            if (Item.WorldObjectPrefab != null)
+            if (PhotonNetwork.IsMasterClient)
             {
-                var obj = PhotonNetwork.InstantiateRoomObject(Item.WorldObjectPrefab.name, transform.position,transform.rotation);
-                //obj.transform.localPosition = Vector3.zero;
-                obj.layer = LayerMask.NameToLayer("Interactable");
-            }
-            else
-            {//...otherwise, we create a billboard using the item sprite
-                GameObject billboard = new GameObject("ItemBillboard");
-                billboard.transform.SetParent(transform, false);
-                billboard.transform.localPosition = Vector3.up * 0.3f;
-                billboard.layer = LayerMask.NameToLayer("Interactable");
+                //if the item have a world object prefab set use that...
+                if (Item.WorldObjectPrefab != null)
+                {
+                    PUNItem = PhotonNetwork.InstantiateRoomObject(Item.WorldObjectPrefab.name, this.transform.position,
+                        transform.rotation);
+                    //PUNItem.layer = LayerMask.NameToLayer("Potion");
+                    PUNItem.transform.parent = this.transform;
+                //     var phView = this.GetComponent<PhotonView>();
+                //     phView.RPC("PlacingLootInSpawner",RpcTarget.OthersBuffered,ItemCount,"Potion");
+                }
+                else
+                {
+                    //...otherwise, we create a billboard using the item sprite
+                    GameObject billboard = new GameObject("ItemBillboard");
+                    billboard.transform.SetParent(transform, false);
+                    billboard.transform.localPosition = Vector3.up * 0.3f;
+                    billboard.layer = LayerMask.NameToLayer("Interactable");
 
-                var renderer = billboard.AddComponent<SpriteRenderer>();
-                renderer.sharedMaterial = ResourceManager.Instance.BillboardMaterial;
-                renderer.sprite = Item.ItemSprite;
+                    var renderer = billboard.AddComponent<SpriteRenderer>();
+                    renderer.sharedMaterial = ResourceManager.Instance.BillboardMaterial;
+                    renderer.sprite = Item.ItemSprite;
 
-                var rect = Item.ItemSprite.rect;
-                float maxSize = rect.width > rect.height ? rect.width : rect.height;
-                float scale = Item.ItemSprite.pixelsPerUnit / maxSize;
+                    var rect = Item.ItemSprite.rect;
+                    float maxSize = rect.width > rect.height ? rect.width : rect.height;
+                    float scale = Item.ItemSprite.pixelsPerUnit / maxSize;
 
-                billboard.transform.localScale = scale * Vector3.one * 0.5f;
-            
-                        
-                var bc = billboard.AddComponent<BoxCollider>();
-                bc.size = new Vector3(0.5f, 0.5f, 0.5f) * (1.0f/scale);
+                    billboard.transform.localScale = scale * Vector3.one * 0.5f;
+
+
+                    var bc = billboard.AddComponent<BoxCollider>();
+                    bc.size = new Vector3(0.5f, 0.5f, 0.5f) * (1.0f / scale);
+                }
             }
         }
+
+        public GameObject GetCurrentPUNObject()
+        {
+            return PUNItem;
+        }
+        //
+        // [PunRPC]
+        // private void PlacingLootInSpawner(int count, string tag)
+        // {
+        //     var arrayOfGO = GameObject.FindGameObjectsWithTag(tag);
+        //     var trigger = 0;
+        //     foreach (var variableGameObject in arrayOfGO)
+        //     {
+        //         if (trigger==count)
+        //         {
+        //             PUNItem = variableGameObject;
+        //         }
+        //         trigger++;
+        //     }
+        // }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using CreatorKitCode;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -11,18 +12,23 @@ namespace View
         [SerializeField] private string _shopID;
         public event Action<string,ShopView> ActivateStoreEvent;
         public event Action DeactivateStoreEvent;
-        private CharacterData customer;
+        private CharacterData customer = null;
         private float IsCustomerDyingCoefficient = 1f;
+        private Collider PlayersCollider = null;
         public bool IsActive=false;
-        private void OnTriggerStay(Collider other)
+        private bool ButtonIsBlocked = false;
+        
+        private void FixedUpdate()
         {
             if (Input.GetKeyUp(KeyCode.E))
             {
-                if(!IsActive)
+                if(!IsActive && !ButtonIsBlocked)
                 {
-                    if (!customer)
+                    if (customer == null && PlayersCollider )
                     {
-                        customer = other.GetComponent<CharacterData>();
+                        Debug.Log("ACTIVATE");
+                        StartCoroutine(BlockButton());
+                        customer = PlayersCollider.GetComponent<CharacterData>();
                         IsActive = true;
                         ActivateStore();
                     }
@@ -36,14 +42,28 @@ namespace View
             }
         }
 
+        private IEnumerator BlockButton()
+        {
+            ButtonIsBlocked = true;
+            yield return new WaitForSeconds(3);
+            ButtonIsBlocked = false;
+        }
+
+        private void OnTriggerStay(Collider other)
+        {
+            PlayersCollider = other;
+        }
+
         private void ActivateStore()
         {
+            Debug.Log("ActivateStore");
             CheckCustomerDying();
             ActivateStoreEvent?.Invoke(_shopID,this);
         }
 
         public void DeactivateStore()
         {
+            Debug.Log("DeactivateStore");
             customer = null;
             DeactivateStoreEvent?.Invoke();
         }
