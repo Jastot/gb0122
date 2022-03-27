@@ -2,41 +2,50 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Controllers;
 using CreatorKitCode;
 using CreatorKitCodeInternal;
 using Data;
 using Photon.Pun;
 using PlayFab;
 using PlayFab.ClientModels;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameController : MonoBehaviour
+public class GameController : MonoBehaviourPunCallbacks,IPunObservable
 {
-    //тут нужно заинитить стартовое UI и отслеживание конца игры
     [SerializeField] private UISystem _uiSystem;
+    [SerializeField] private TimeController _timeController;
     [SerializeField] private CharactersLocalData _charactersLocalData;
     [SerializeField] private EnemySpawner _enemySpawner;
     [SerializeField] private Transform _parentOfPlayersCharacters;
     [SerializeField] private Transform _escapeUI;
     private CharacterControl _mainCharacterController;
     private MatchStatistics _matchStatistics;
-    private bool IsMainCharacterDead = false;
-    
+    private List<CharacterControl> _playerList;
+    private PhotonLogin.GameType _gameType;
     public event Action EndOfGame;
-    
+
     public enum PlayerState
     {
         Win,
-        Loose
+        Loose,
+        Waiting
     }
-    
+
+    public enum GameEndState
+    {
+        PlayerDead,
+        EnemiesDead,
+        AllPlayersDead,
+        COOPDead
+    }
+
     private void Awake()
     {
         _matchStatistics = new MatchStatistics();
-        _uiSystem.StartGameUI.SetStartText((PhotonLogin.GameType)
-            PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
+        _gameType = (PhotonLogin.GameType) PhotonNetwork.CurrentRoom.CustomProperties["GameType"];
+        _uiSystem.StartGameUI.SetStartText(_gameType);
     }
 
     private void Start()
@@ -44,20 +53,28 @@ public class GameController : MonoBehaviour
         var allCharacterControllers = _parentOfPlayersCharacters.GetComponentsInChildren<CharacterControl>();
         foreach (var controller in allCharacterControllers)
         {
-            if (controller.GetComponent<PhotonView>().IsMine)
+            if (controller.photonView.IsMine)
             {
                 _mainCharacterController = controller;
-                _mainCharacterController.photonView.RPC("SetTeamOrOffIt",RpcTarget.All,
+                _mainCharacterController.photonView.RPC("SetTeamOrOffIt", RpcTarget.All,
                     (int)
                     PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
             }
-            
-            
-        }    
-        
+        }
+
+        _playerList = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
+        foreach (var player in _playerList)
+        {
+            if (!player.photonView.IsMine)
+            {
+                player.Data.DeathRattle += SetInfoAboutDeadPlayers;
+            }
+        }
+
         _mainCharacterController.Data.DeathRattle += SetMainCharacterDead;
         _mainCharacterController.GetSomeExp += GetSomeExp;
-        _enemySpawner.CountOfEnemyChanged += CheckTheOfTheGame;
+        _enemySpawner.CountOfEnemyChanged += CheckTheEnemyCount;
+        _matchStatistics.WinOrLoose = PlayerState.Waiting;
     }
 
     private void Update()
@@ -66,9 +83,15 @@ public class GameController : MonoBehaviour
         {
             _escapeUI.gameObject.SetActive(!_escapeUI.gameObject.activeSelf);
         }
+
+        if (_matchStatistics.WinOrLoose==PlayerState.Win||
+            _matchStatistics.WinOrLoose==PlayerState.Loose)
+        {
+            _timeController.StopTimer();
+        }
     }
 
-    private void GetSomeExp(int exp,CharacterData characterData)
+    private void GetSomeExp(int exp, CharacterData characterData)
     {
         bool isNotEnemy = characterData.GetComponent<CharacterControl>();
         if (isNotEnemy)
@@ -78,41 +101,125 @@ public class GameController : MonoBehaviour
         _charactersLocalData.BattleResult.GainedExp += exp;
     }
 
-    private void SetMainCharacterDead(int obj,CharacterData characterData)
+    private void SetMainCharacterDead(int obj, CharacterData characterData)
     {
-        IsMainCharacterDead = true;
+        var enemy = _enemySpawner.GetEnemiesCharData();
+        foreach (var character in enemy)
+        {
+            character.GetComponent<SimpleEnemyController>().photonView.RPC("DeleteSomeCharacter", RpcTarget.All,
+                _mainCharacterController.photonView.ViewID);
+        }
+
+        StartCoroutine(MakeTheEndOfGame(GameEndState.PlayerDead));
     }
 
-    private void CheckTheOfTheGame(int enemies)
+    private void CheckTheEnemyCount(int enemies)
     {
-        Debug.Log("Enemy c: "+enemies);
-        //TODO: переработать условие
         if (enemies == 0)
         {
-            if (CheckTheOfTheGame(IsMainCharacterDead))
-            {
-                return;
-            }
-            EndOfTheGame(false);
+            StartCoroutine(MakeTheEndOfGame(GameEndState.EnemiesDead));
         }
-    }
-    private bool CheckTheOfTheGame(bool isDead)
-    {
-        if (isDead)
-        {
-            EndOfTheGame(isDead);
-            return true;
-        }
-        return false;
     }
 
-    private void EndOfTheGame(bool isDead)
+    private void SetInfoAboutDeadPlayers(int exp, CharacterData data)
     {
-        //EndOfGame?.Invoke();
-        if(!isDead) 
+        _playerList.Remove(data.GetComponent<CharacterControl>());
+        if (_playerList.Count == 1)
+            StartCoroutine(MakeTheEndOfGame(GameEndState.AllPlayersDead));
+        List<int> tuple = new List<int>() {0, 0, 0};
+        foreach (var player in _playerList)
+        {
+            switch (player.IsThisCharacterAttractable)
+            {
+                case 0:
+                    tuple[0]++;
+                    break;
+                case 1:
+                    tuple[1]++;
+                    break;
+                case -1:
+                    tuple[2]++;
+                    break;
+            }
+        }
+
+        if (tuple[2] > 1)
+            return;
+        else
+        {
+            if (tuple[0] == 0)
+                StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 1));
+            if (tuple[1] == 0)
+                StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 0));
+        }
+    }
+
+    private IEnumerator MakeTheEndOfGame(GameEndState gameEndState)
+    {
+        yield return new WaitForSeconds(1);
+        switch (gameEndState)
+        {
+            case GameEndState.PlayerDead:
+                if (_gameType != PhotonLogin.GameType.TwoTeams)
+                {
+                    _matchStatistics.WinOrLoose = PlayerState.Loose;
+                }
+
+                ShowUIWithInfo();
+                break;
+            case GameEndState.EnemiesDead:
+                if (_gameType != PhotonLogin.GameType.TwoTeams)
+                {
+                    if (_gameType == PhotonLogin.GameType.COOP)
+                    {
+                        AddScoreOfUser();
+                        _matchStatistics.WinOrLoose = PlayerState.Win;
+                        gameObject.GetPhotonView().RPC("COOPWin", RpcTarget.Others);
+                    }
+                    else
+                    {
+                        AddScoreOfUser();
+                        if (_matchStatistics.KillEnemy >=
+                            (_enemySpawner.StartCountOfEnemies / 2))
+                        {
+                            _matchStatistics.WinOrLoose = PlayerState.Win;
+                            gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.Others);
+                        }
+                        else
+                        {
+                            _matchStatistics.WinOrLoose = PlayerState.Loose;
+                        }
+                    }
+                }
+                ShowUIWithInfo();
+                break;
+            case GameEndState.AllPlayersDead:
+                AddScoreOfUser();
+                _matchStatistics.WinOrLoose = PlayerState.Win;
+                gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.Others);
+                ShowUIWithInfo();
+                break;
+        }
+    }
+
+
+
+    private IEnumerator MakeTheEndOfGame(GameEndState gameEndState, int command)
+    {
+        yield return new WaitForSeconds(1);
+        _matchStatistics.WinTeamColor = (TeamColor) command;
+        //gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.Others, command);
+        if (_mainCharacterController.IsThisCharacterAttractable == command)
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Win;
             AddScoreOfUser();
-        _uiSystem.EndGameUI.SetEndText(_matchStatistics,(PhotonLogin.GameType)
-            PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
+        }
+        ShowUIWithInfo();
+    }
+
+    private void ShowUIWithInfo()
+    {
+        _uiSystem.EndGameUI.SetEndText(_matchStatistics, _gameType);
         _uiSystem.EndGameUI.ShowEndUI();
     }
 
@@ -120,13 +227,22 @@ public class GameController : MonoBehaviour
     {
         _matchStatistics.Exp = _charactersLocalData.BattleResult.GainedExp;
         UpdateCharacterAfterGame();
-        //PhotonNetwork.CurrentRoom.CustomProperties.Add("","");
     }
 
     public void OnDestroy()
-    {
+    {/*
+        foreach (var player in _playerList)
+        {
+            if (!player.photonView.IsMine)
+            {
+                player.Data.DeathRattle -= SetInfoAboutDeadPlayers;
+            }
+        }
+        */
+
+        _mainCharacterController.Data.DeathRattle -= SetMainCharacterDead;
         _mainCharacterController.GetSomeExp -= GetSomeExp;
-        _enemySpawner.CountOfEnemyChanged -= CheckTheOfTheGame;
+        _enemySpawner.CountOfEnemyChanged -= CheckTheEnemyCount;
     }
 
     private void UpdateCharacterAfterGame()
@@ -142,9 +258,6 @@ public class GameController : MonoBehaviour
         prog += _charactersLocalData.BattleResult.GainedExp;
         var newLevel = prog / 450;
         var newExp = prog % 450;
-        //TODO: выяснить в чем проблема потери уровня
-        Debug.Log("newLevel: "+newLevel);
-        Debug.Log("newExp: "+newExp);
         PlayFabClientAPI.UpdateCharacterStatistics(new UpdateCharacterStatisticsRequest()
         {
             CharacterId = _charactersLocalData.CurrentCharacter,
@@ -165,15 +278,55 @@ public class GameController : MonoBehaviour
     {
         if (PhotonNetwork.InRoom)
             PhotonNetwork.LeaveRoom();
-        
-        SceneManager.LoadSceneAsync("MainProfile");
+       
     }
 
     public void LeaveGame()
     {
         if (PhotonNetwork.InRoom)
             PhotonNetwork.LeaveRoom();
-        
+
         Application.Quit();
+    }
+
+    [PunRPC]
+    public void EndGameLoose()
+    {
+        _matchStatistics.WinOrLoose = PlayerState.Loose;
+        ShowUIWithInfo();
+    }
+    
+    [PunRPC]
+    public void COOPWin()
+    {
+        _matchStatistics.WinOrLoose = PlayerState.Win;
+        AddScoreOfUser();
+        ShowUIWithInfo();
+    }
+
+    [PunRPC]
+    public void EndGameWinTeam(int color)
+    {
+        if (_mainCharacterController.IsThisCharacterAttractable == color)
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Win;
+            AddScoreOfUser();
+        }
+        else
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Loose;
+        }
+        _matchStatistics.WinTeamColor = (TeamColor) color;
+        ShowUIWithInfo();
+    }
+
+    public override void OnLeftRoom()
+    {
+        SceneManager.LoadSceneAsync("MainProfile");
+    }
+    
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using CreatorKitCode;
+using Photon.Pun;
 using UnityEngine;
 
 public class AddHealthUsageEffect : UsableItem.UsageEffect
@@ -15,7 +16,7 @@ public class AddHealthUsageEffect : UsableItem.UsageEffect
         VFXManager.PlayVFX(VFXType.Healing, user.transform.position);
 
         user.Stats.ChangeHealth( Mathf.FloorToInt(HealthPurcentageAmount/100.0f * user.Stats.stats.health) );
-
+        user.GetComponent<PhotonView>().RPC("SyncHP", RpcTarget.OthersBuffered, user.Stats.CurrentHealth);
         return true;
     }
 }

@@ -14,8 +14,8 @@ namespace Data
 
     public enum TeamColor
     {
-        None,
-        Red,
-        Blue
+        Red = 0,
+        Blue = 1,
+        None
     }
 }

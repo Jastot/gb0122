@@ -15,10 +15,6 @@ namespace UI
         [SerializeField] private bool _IsItStart;
         [SerializeField] private float _firstWait = 1f;
         [SerializeField] private float _secondWait = 5f;
-        /*Условия победы:
-
-        Условия поражения:*/
-
         private Tween _fadeTween;
 
         private void Start()
@@ -63,11 +59,15 @@ namespace UI
             
         }
 
-        public void SetEndText(MatchStatistics matchStatistics,PhotonLogin.GameType gameType)
+        public void SetEndText(MatchStatistics matchStatistics,
+            PhotonLogin.GameType gameType)
         {
             string endFraze = "";
             switch (matchStatistics.WinOrLoose)
             {
+                case GameController.PlayerState.Waiting:
+                    endFraze = "Ожидайте исхода матча\n";
+                    break;
                 case GameController.PlayerState.Win:
                     endFraze = "ПОБЕДА!!!\n";
                     break;
@@ -88,6 +88,7 @@ namespace UI
                     teamColor = "Синяя команда";
                     break;
             }
+            endFraze += teamColor;
             switch (gameType)
                     {
                         case PhotonLogin.GameType.COOP:

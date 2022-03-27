@@ -16,10 +16,11 @@ public class EnemySpawner : MonoBehaviour
     private List<EnemiesSpawnerPoint> _enemiesSpawnerPoints;
     private Queue<int> _queueSpawn = new Queue<int>();
     private Dictionary<int,int> _counter;
-    private List<CharacterData> _characterDataList;
+    
     private int _allCountOfEnemy;
     public int StartCountOfEnemies;
-
+    private List<CharacterData> _characterDataList;
+    
     public event Action<int> CountOfEnemyChanged; 
     void Start()
     {
@@ -46,6 +47,11 @@ public class EnemySpawner : MonoBehaviour
 
             SpawnEnemies();
         }
+    }
+
+    public List<CharacterData> GetEnemiesCharData()
+    {
+        return _characterDataList;
     }
 
     private void GenerateQueue()

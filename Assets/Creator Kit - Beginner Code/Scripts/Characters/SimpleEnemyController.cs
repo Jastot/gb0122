@@ -75,17 +75,23 @@ namespace CreatorKitCodeInternal {
             _playersInGame = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
         }
 
-        
+        [PunRPC]
+        public void DeleteSomeCharacter(int id)
+        {
+            foreach (var playerInGame in _playersInGame)
+            {
+                if (playerInGame.photonView.ViewID == id)
+                {
+                    _playersInGame.Remove(playerInGame);
+                }
+            }
+        }
         
         // Update is called once per frame
         void Update()
         {
-            //See the Update function of CharacterControl.cs for a comment on how we could replace
-            //this (polling health) to a callback method.
-            //TODO: проверить
             if (m_CharacterData.Stats.CurrentHealth == 0)
             {
-                Debug.Log("Current health: "+ m_CharacterData.Stats.CurrentHealth);
                 m_Animator.SetTrigger(m_DeathAnimHash);
             
                 m_CharacterAudio.Death(transform.position);

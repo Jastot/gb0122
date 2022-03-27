@@ -44,7 +44,8 @@ public class PlayFabLogin : MonoBehaviour
             Username = _username,
             Email = _mail,
             Password = _pass,
-            RequireBothUsernameAndEmail = true
+            RequireBothUsernameAndEmail = true,
+            DisplayName = _username
         }, _ =>
         {
             Debug.Log($"Create Account Success: {_.PlayFabId}");

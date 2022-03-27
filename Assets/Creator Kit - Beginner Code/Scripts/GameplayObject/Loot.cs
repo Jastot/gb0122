@@ -17,14 +17,14 @@ namespace CreatorKitCode
     ///
     /// Finally it will notify the LootUI that a new loot is available in the world so the UI displays the name.
     /// </summary>
-    public class Loot : InteractableObject
+    public class Loot : MonoBehaviourPun
     {
         private GameObject PUNItem;
         static float AnimationTime = 0.5f;
         public int ItemCount;
         public Item Item;
 
-        public override bool IsInteractable => m_AnimationTimer >= AnimationTime;
+        //public override bool IsInteractable => m_AnimationTimer >= AnimationTime;
 
         Vector3 m_OriginalPosition;
         Vector3 m_TargetPoint;
@@ -38,16 +38,14 @@ namespace CreatorKitCode
             m_AnimationTimer = AnimationTime - 0.1f;
         }
 
-        protected override void Start()
+        protected void Start()
         {
-            base.Start();
-        
             CreateWorldRepresentation();
         }
 
         void Update()
         {
-            if (m_AnimationTimer < AnimationTime)
+            /*if (m_AnimationTimer < AnimationTime)
             {
                 m_AnimationTimer += Time.deltaTime;
 
@@ -64,10 +62,10 @@ namespace CreatorKitCode
                 }
             }
         
-            Debug.DrawLine(m_TargetPoint, m_TargetPoint + Vector3.up, Color.magenta);
+            Debug.DrawLine(m_TargetPoint, m_TargetPoint + Vector3.up, Color.magenta);*/
         }
 
-        public override void InteractWith(CharacterData target)
+        /*public override void InteractWith(CharacterData target)
         {
             target.Inventory.AddItem(Item);
             SFXManager.PlaySound(SFXManager.Use.Sound2D, new SFXManager.PlayData(){Clip = SFXManager.PickupSound});
@@ -76,7 +74,7 @@ namespace CreatorKitCode
             LootUI.Instance.DestroyUI(this);
             PhotonNetwork.Destroy(PUNItem);
             Destroy(gameObject);
-        }
+        }*/
 
         /// <summary>
         /// This is called when the loot become available. It will setup to play the small spawn animation.
@@ -121,12 +119,18 @@ namespace CreatorKitCode
                 //if the item have a world object prefab set use that...
                 if (Item.WorldObjectPrefab != null)
                 {
-                    PUNItem = PhotonNetwork.InstantiateRoomObject(Item.WorldObjectPrefab.name, this.transform.position,
+                    PUNItem = PhotonNetwork.InstantiateRoomObject(Item.WorldObjectPrefab.name, transform.position,
                         transform.rotation);
+                    PUNItem.GetPhotonView().RPC("GetSomeInfoFromSpawner", RpcTarget.All);
+                    PUNItem.GetPhotonView().RPC("GetSomePosFromSpawner", RpcTarget.All,
+                        transform.position.x,
+                        transform.position.y,
+                        transform.position.z
+                        );
                     //PUNItem.layer = LayerMask.NameToLayer("Potion");
-                    PUNItem.transform.parent = this.transform;
-                //     var phView = this.GetComponent<PhotonView>();
-                //     phView.RPC("PlacingLootInSpawner",RpcTarget.OthersBuffered,ItemCount,"Potion");
+                    //PUNItem.transform.parent = this.transform;
+                    //     var phView = this.GetComponent<PhotonView>();
+                    //     phView.RPC("PlacingLootInSpawner",RpcTarget.OthersBuffered,ItemCount,"Potion");
                 }
                 else
                 {
@@ -152,25 +156,5 @@ namespace CreatorKitCode
                 }
             }
         }
-
-        public GameObject GetCurrentPUNObject()
-        {
-            return PUNItem;
-        }
-        //
-        // [PunRPC]
-        // private void PlacingLootInSpawner(int count, string tag)
-        // {
-        //     var arrayOfGO = GameObject.FindGameObjectsWithTag(tag);
-        //     var trigger = 0;
-        //     foreach (var variableGameObject in arrayOfGO)
-        //     {
-        //         if (trigger==count)
-        //         {
-        //             PUNItem = variableGameObject;
-        //         }
-        //         trigger++;
-        //     }
-        // }
     }
 }

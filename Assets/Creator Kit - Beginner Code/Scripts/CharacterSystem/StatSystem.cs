@@ -297,6 +297,7 @@ namespace CreatorKitCode
         public void ChangeHealth(int amount)
         {
             CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, stats.health);
+            
         }
 
         void UpdateFinalStats()

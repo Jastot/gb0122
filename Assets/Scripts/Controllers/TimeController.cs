@@ -70,5 +70,10 @@ namespace Controllers
                 _text.text = time.ToString(@"hh\:mm\:ss");
             }
         }
+
+        public void StopTimer()
+        {
+            startTimer = false;
+        }
     }
 }

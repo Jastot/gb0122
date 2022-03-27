@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using CreatorKitCode;
+using Photon.Pun;
 using UnityEngine;
 
 namespace CreatorKitCodeInternal 
@@ -11,7 +12,7 @@ namespace CreatorKitCodeInternal
     /// physics to simulate the barrel breaking.
     /// </summary>
     [RequireComponent(typeof(CharacterData))]
-    public class BreakableObject : MonoBehaviour
+    public class BreakableObject : MonoBehaviourPun
     {
         public GameObject DestroyedChild;
         public AudioClip BreakingAudioClip;
@@ -32,17 +33,23 @@ namespace CreatorKitCodeInternal
         // Update is called once per frame
         void Update()
         {
-            if (m_CharacterData.Stats.CurrentHealth == 0)
-            {
-                m_LootSpawner.SpawnLoot();
-            
-                DestroyedChild.transform.SetParent(null);
-                DestroyedChild.gameObject.SetActive(true);
-            
-                SFXManager.PlaySound(SFXManager.Use.WorldSound, new SFXManager.PlayData() { Clip = BreakingAudioClip });
-            
-                Destroy(gameObject);
-            }
+            if (PhotonNetwork.IsMasterClient)
+                if (m_CharacterData.Stats.CurrentHealth == 0)
+                {
+                    m_LootSpawner.SpawnLoot();
+                    gameObject.GetPhotonView().RPC("DoSomething", RpcTarget.All);
+                }
+        }
+
+        [PunRPC]
+        public void DoSomething()
+        {
+            DestroyedChild.transform.SetParent(null);
+            DestroyedChild.gameObject.SetActive(true);
+                    
+            SFXManager.PlaySound(SFXManager.Use.WorldSound, new SFXManager.PlayData() { Clip = BreakingAudioClip });
+                
+            Destroy(gameObject);
         }
     }
 }

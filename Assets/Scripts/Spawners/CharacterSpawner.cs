@@ -12,6 +12,8 @@ public class CharacterSpawner : MonoBehaviour
 	[SerializeField] private CharactersLocalData _charactersLocalData;
 	[HideInInspector]
 	public PhotonLogin.GameType GameType;
+
+	private string _charName;
 	
 	public void Awake()
 	{
@@ -22,11 +24,12 @@ public class CharacterSpawner : MonoBehaviour
 		{
 			if (_charactersLocalData.InRoomId == player.UserId)
 			{
+				_charName = player.NickName;
 				break;
 			}
 			count++;
 		}
-		GameObject go;
+		GameObject go = null;
 		switch (GameType)
 		{
 			case PhotonLogin.GameType.COOP:
@@ -45,5 +48,6 @@ public class CharacterSpawner : MonoBehaviour
 				go.transform.parent = parent;
 				break;
 		}
+		go.GetPhotonView().RPC("SetCharName", RpcTarget.All,_charName);
 	}
 }

@@ -24,14 +24,14 @@ namespace CreatorKitCodeInternal
     
         struct DisplayedLoot
         {
-            public Loot TargetLoot;
+            public PotionView TargetLoot;
             public ButtonText TargetButton;
         }
 
         public Button ButtonPrefab;
         
         Queue<ButtonText> m_ButtonPool = new Queue<ButtonText>();
-        List<Loot> m_OffScreenLoot = new List<Loot>();
+        List<PotionView> m_OffScreenLoot = new List<PotionView>();
         List<DisplayedLoot> m_OnScreenLoot = new List<DisplayedLoot>();
         public List<CharacterControl> m_CharacterControl = new List<CharacterControl>();
         
@@ -57,7 +57,7 @@ namespace CreatorKitCodeInternal
             
         }
 
-        public void NewLoot(Loot loot)
+        public void NewLoot(PotionView loot)
         {
             Vector3 screenPos;
             if (OnScreen(loot.transform.position, out screenPos))
@@ -70,7 +70,7 @@ namespace CreatorKitCodeInternal
             }
         }
 
-        void AddButton(Loot l, Vector3 screenPosition)
+        void AddButton(PotionView l, Vector3 screenPosition)
         {
             DisplayedLoot dl;
 
@@ -89,15 +89,13 @@ namespace CreatorKitCodeInternal
                         variableCharacterControl.InteractWith(l);
                     }
                 }
-                //CharacterControl.Instance.InteractWith(l);
             } );
-            //добавить удаление. и норм считывание
             dl.TargetButton.LootName.text = l.Item.ItemName;
         
             m_OnScreenLoot.Add(dl);
         }
 
-        public void DestroyUI(Loot loot)
+        public void DestroyUI(PotionView loot)
         {
             foreach (var variableDisplayedLoot in m_OnScreenLoot)
             {
@@ -120,9 +118,9 @@ namespace CreatorKitCodeInternal
         }
 
         // Update is called once per frame
-        void Update()
+        void FixedUpdate()
         {
-            List<Loot> newOffscreen = new List<Loot>();
+            List<PotionView> newOffscreen = new List<PotionView>();
         
             for (int i = 0; i < m_OnScreenLoot.Count; ++i)
             {
@@ -136,7 +134,8 @@ namespace CreatorKitCodeInternal
                 else
                 {
                     m_OnScreenLoot.RemoveAt(i);
-                    entry.TargetButton.LootButton.gameObject.SetActive(false);
+                    if (entry.TargetButton.LootButton!=null)
+                        entry.TargetButton.LootButton.gameObject.SetActive(false);
                     m_ButtonPool.Enqueue(entry.TargetButton);
                     newOffscreen.Add(entry.TargetLoot);
                     i--;

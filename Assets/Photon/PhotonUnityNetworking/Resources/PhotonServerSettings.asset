@@ -42,6 +42,20 @@ MonoBehaviour:
   - PlacingLootInSpawner
   - SetTeamOrOffIt
   - SyncHP
+  - DoSomething
+  - SomeRPCView
+  - GetSomeInfoFromMaster
+  - SendSomeInfoToMaster
+  - GetSomeInfoFromSpawner
+  - GetSomePosFromSpawner
+  - SendDestroyToChildren
+  - SetCharName
+  - DeleteSomeCharacter
+  - EndGame
+  - EndGameLoose
+  - EndGameLooseTeam
+  - EndGameWinTeam
+  - COOPWin
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

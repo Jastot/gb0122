@@ -177,6 +177,12 @@ namespace CreatorKitCode
         {
             Stats.CurrentHealth = statsHealth;
         }
+
+        [PunRPC]
+        private void SetCharName(string name)
+        {
+            CharacterName = name;
+        }
         
         private void GiveExpForPlayer()
         { 

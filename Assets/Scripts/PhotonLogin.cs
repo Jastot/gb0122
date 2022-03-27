@@ -156,11 +156,6 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         pl.Add(currentPlayer,TeamNum);
         PhotonNetwork.CurrentRoom.CustomProperties["PlayersObjs"] = pl;*/
     }
-    
-    public override void OnLeftRoom()
-    {
-        
-    }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {

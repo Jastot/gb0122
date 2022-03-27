@@ -56,7 +56,6 @@ namespace CreatorKitCodeInternal {
         
         private int m_TargetLayer;
         private int m_PlayerLayer;
-        //TODO: need fix
         CharacterData m_CurrentTargetCharacterData = null;
         //this is a flag that tell the controller it need to clear the target once the attack finished.
         //usefull for when clicking elwswhere mid attack animation, allow to finish the attack and then exit.
@@ -89,7 +88,6 @@ namespace CreatorKitCodeInternal {
         
             m_Agent = GetComponent<NavMeshAgent>();
             m_Animator = GetComponentInChildren<Animator>();
-        
             m_Agent.speed = Speed;
             m_Agent.angularSpeed = 360.0f;
 
@@ -380,7 +378,8 @@ namespace CreatorKitCodeInternal {
                         CharacterControl data = m_RaycastHitCache[0].collider.GetComponentInParent<CharacterControl>();
                         if (data != null && 
                             (data.IsThisCharacterAttractable == -1 ||
-                             data.IsThisCharacterAttractable != this.IsThisCharacterAttractable))
+                             data.IsThisCharacterAttractable != this.IsThisCharacterAttractable)&&
+                            !data.photonView.IsMine)
                         {
                             m_Highlighted = data.Data;
                             somethingFound = true;
@@ -526,8 +525,8 @@ namespace CreatorKitCodeInternal {
         {
             if (obj.IsInteractable && photonView.IsMine)
             {
-                var loot = (Loot) obj;
-                m_TargetCollider = loot.GetCurrentPUNObject().GetComponent<Collider>();
+                var loot = (PotionView) obj;
+                m_TargetCollider = loot.gameObject.GetComponent<Collider>();
                 //m_TargetCollider = obj.GetComponentInChildren<Collider>();
                 m_TargetInteractable = obj;
                 m_Agent.SetDestination(obj.transform.position);
