@@ -13,7 +13,7 @@ public class CatalogManager : MonoBehaviour
     {
         PlayFabClientAPI.GetStoreItems(new GetStoreItemsRequest
         {
-            StoreId = "items_store"
+            StoreId = "potions_shop"
         }, result =>
         {
             HandleStore(result.Store);
