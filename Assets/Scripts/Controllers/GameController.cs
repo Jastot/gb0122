@@ -18,7 +18,6 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
     [SerializeField] private TimeController _timeController;
     [SerializeField] private CharactersLocalData _charactersLocalData;
     [SerializeField] private EnemySpawner _enemySpawner;
-    [SerializeField] private Transform _parentOfPlayersCharacters;
     [SerializeField] private Transform _escapeUI;
     private CharacterControl _mainCharacterController;
     private MatchStatistics _matchStatistics;
@@ -44,13 +43,18 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
     private void Awake()
     {
         _matchStatistics = new MatchStatistics();
+        _matchStatistics.TeamEnemyKill = new List<int>();
+        _matchStatistics.TeamEnemyKill.Add(0);
+        _matchStatistics.TeamEnemyKill.Add(0);
+        _matchStatistics.WinTeamColor = TeamColor.None;
         _gameType = (PhotonLogin.GameType) PhotonNetwork.CurrentRoom.CustomProperties["GameType"];
         _uiSystem.StartGameUI.SetStartText(_gameType);
     }
 
     private void Start()
     {
-        var allCharacterControllers = _parentOfPlayersCharacters.GetComponentsInChildren<CharacterControl>();
+        
+        var allCharacterControllers = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
         foreach (var controller in allCharacterControllers)
         {
             if (controller.photonView.IsMine)
@@ -115,10 +119,30 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
 
     private void CheckTheEnemyCount(int enemies)
     {
+        //no time
+        if (_mainCharacterController.IsThisCharacterAttractable == 0)
+        {
+            _matchStatistics.TeamEnemyKill[0]++;
+            this.photonView.RPC("SetTeamCount",RpcTarget.All,_matchStatistics.TeamEnemyKill[0],0);
+        }
+
+        if (_mainCharacterController.IsThisCharacterAttractable == 1)
+        {
+            _matchStatistics.TeamEnemyKill[1]++;
+            this.photonView.RPC("SetTeamCount",RpcTarget.All,_matchStatistics.TeamEnemyKill[1],1);
+            
+        }
+
         if (enemies == 0)
         {
             StartCoroutine(MakeTheEndOfGame(GameEndState.EnemiesDead));
         }
+    }
+
+    [PunRPC]
+    public void SetTeamCount(int count,int team)
+    {
+        _matchStatistics.TeamEnemyKill[team] = count;
     }
 
     private void SetInfoAboutDeadPlayers(int exp, CharacterData data)
@@ -190,8 +214,20 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
                             _matchStatistics.WinOrLoose = PlayerState.Loose;
                         }
                     }
+                    ShowUIWithInfo();
                 }
-                ShowUIWithInfo();
+                else
+                {
+                    if (_matchStatistics.TeamEnemyKill[0]>_matchStatistics.TeamEnemyKill[1])
+                    {
+                        StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 0));
+                    }
+                    else
+                    {
+                        StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 1));
+                    }
+                    
+                }
                 break;
             case GameEndState.AllPlayersDead:
                 AddScoreOfUser();
@@ -206,15 +242,16 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
 
     private IEnumerator MakeTheEndOfGame(GameEndState gameEndState, int command)
     {
+        Debug.Log("2 teams");
         yield return new WaitForSeconds(1);
         _matchStatistics.WinTeamColor = (TeamColor) command;
-        //gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.Others, command);
-        if (_mainCharacterController.IsThisCharacterAttractable == command)
+        gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.All, command);
+        /*if (_mainCharacterController.IsThisCharacterAttractable == command)
         {
             _matchStatistics.WinOrLoose = PlayerState.Win;
             AddScoreOfUser();
-        }
-        ShowUIWithInfo();
+        }*/
+        //ShowUIWithInfo();
     }
 
     private void ShowUIWithInfo()

@@ -40,7 +40,6 @@ namespace CreatorKitCode
 public class ItemEditor
 {
     SerializedObject m_Target;
-
     SerializedProperty m_NameProperty;
     SerializedProperty m_IconProperty;
     SerializedProperty m_DescriptionProperty;
@@ -49,7 +48,6 @@ public class ItemEditor
     public void Init(SerializedObject target)
     {
         m_Target = target;
-
         m_NameProperty = m_Target.FindProperty(nameof(Item.ItemName));
         m_IconProperty = m_Target.FindProperty(nameof(Item.ItemSprite));
         m_DescriptionProperty = m_Target.FindProperty(nameof(Item.Description));

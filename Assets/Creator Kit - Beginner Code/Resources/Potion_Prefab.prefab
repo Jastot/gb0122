@@ -152,4 +152,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 803510d731734d44fa1484f857b19269, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nameOfItem: heal_potion_1
   Item: {fileID: 0}

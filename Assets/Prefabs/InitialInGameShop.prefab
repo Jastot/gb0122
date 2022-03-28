@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3666435952399250129}
   - component: {fileID: 2673581221220386411}
   m_Layer: 5
-  m_Name: InitialCatalogItem
+  m_Name: InitialInGameShop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -140,7 +140,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3666435952399250129}
         m_TargetAssemblyTypeName: CatalogItemsElement, Assembly-CSharp
-        m_MethodName: MakePurchase
+        m_MethodName: MakePurchaseAndPutInInventory
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

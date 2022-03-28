@@ -273,4 +273,10 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
         _mm.SetActive(false);
         PhotonNetwork.LeaveRoom();
     }
+
+    public void ExitGame()
+    {
+        PhotonNetwork.LeaveLobby();
+        Application.Quit();
+    }
 }

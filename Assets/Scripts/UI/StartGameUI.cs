@@ -88,7 +88,6 @@ namespace UI
                     teamColor = "Синяя команда";
                     break;
             }
-            endFraze += teamColor;
             switch (gameType)
                     {
                         case PhotonLogin.GameType.COOP:

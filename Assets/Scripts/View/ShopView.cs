@@ -26,7 +26,6 @@ namespace View
                 {
                     if (customer == null && PlayersCollider )
                     {
-                        Debug.Log("ACTIVATE");
                         StartCoroutine(BlockButton());
                         customer = PlayersCollider.GetComponent<CharacterData>();
                         IsActive = true;
@@ -56,14 +55,12 @@ namespace View
 
         private void ActivateStore()
         {
-            Debug.Log("ActivateStore");
             CheckCustomerDying();
             ActivateStoreEvent?.Invoke(_shopID,this);
         }
 
         public void DeactivateStore()
         {
-            Debug.Log("DeactivateStore");
             customer = null;
             DeactivateStoreEvent?.Invoke();
         }

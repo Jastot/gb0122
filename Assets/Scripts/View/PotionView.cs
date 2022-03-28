@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class PotionView : InteractableObject, IPunObservable
 {
+    [SerializeField] private string nameOfItem;
     public override bool IsInteractable => m_AnimationTimer >= AnimationTime;
     float m_AnimationTimer = 0.0f;
     static float AnimationTime = 0.5f;
@@ -75,7 +76,7 @@ public class PotionView : InteractableObject, IPunObservable
     [PunRPC]
     private void GetSomeInfoFromSpawner()
     {
-        Item = Resources.Load<Item>("ItemDatabase/Potion");;
+        Item = Resources.Load<Item>("ItemDatabase/"+nameOfItem);;
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

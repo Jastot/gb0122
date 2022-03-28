@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CreatorKitCode;
+using CreatorKitCodeInternal;
 using Data;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -20,9 +22,18 @@ namespace Controllers
         private List<ShopView> _shopViews;
         private List<CatalogItemsElement> _shopItemList;
         private float IsCountOfEnemyLowCoefficient = 1f;
+        private CharacterControl _mainCharacterController;
         
         private void Start()
         {
+            foreach (var characterControl in FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList())
+            {
+                if (characterControl.photonView.IsMine)
+                {
+                    _mainCharacterController = characterControl;
+                    break;
+                }
+            }
             _shopItemList = new List<CatalogItemsElement>();
             _shopViews = GetComponentsInChildren<ShopView>().ToList();
             foreach (var shop in _shopViews)
@@ -59,6 +70,7 @@ namespace Controllers
                 foreach (var catalog in _shopItemList)
                 {
                     catalog.BuyItem += LookAtBuyNewItem;
+                    catalog.GiveAnItem += GiveItToPlayer;
                 }
                 _shopUI.gameObject.SetActive(true);
             }, Debug.LogError);
@@ -69,11 +81,47 @@ namespace Controllers
             foreach (var catalog in _shopItemList)
             {
                 catalog.BuyItem -= LookAtBuyNewItem;
+                catalog.GiveAnItem -= GiveItToPlayer;
             }
             _shopItemList.Clear();
             ClearUI();
             _shopUI.gameObject.SetActive(false);
             
+        }
+
+        private void GiveItToPlayer(StoreItem obj)
+        {
+            string id="";
+            PlayFabClientAPI.GetUserInventory(new GetUserInventoryRequest(),
+                result =>
+                {
+                    foreach (var itemInstance in  result.Inventory)
+                    {
+                        if (itemInstance.ItemId == obj.ItemId)
+                        {
+                            id = itemInstance.ItemInstanceId;
+                            break;
+                        }
+                    }
+                    PlayFabClientAPI.ConsumeItem(new ConsumeItemRequest()
+                        {
+                            ItemInstanceId = id,
+                            AuthenticationContext = _playerInfo.AuthenticationContext,
+                            ConsumeCount = 1
+                        }, 
+                        result =>
+                        {
+                            Debug.Log("RemainingUses: "+result.RemainingUses);
+                            _mainCharacterController.Data.Inventory.AddItem(Resources.Load<Item>("ItemDatabase/"+obj.ItemId));
+                        }, error =>
+                        {
+                            Debug.Log(error);
+                        });
+                },
+                error =>
+                {
+                    
+                });
         }
 
         private void ClearUI()
@@ -124,6 +172,7 @@ namespace Controllers
 
         private void SetIsCountOfEnemyLowCoefficient(int count)
         {
+            Debug.Log("SetIsCountOfEnemyLowCoefficient");
             if (count  / _enemySpawner.StartCountOfEnemies <= _enemySpawner.StartCountOfEnemies*3/4) 
             {
                 if (count  / _enemySpawner.StartCountOfEnemies <= _enemySpawner.StartCountOfEnemies*2/4) 

@@ -10,6 +10,7 @@ namespace Data
         public int KillPlayers;
         public int Exp;
 
+        public List<int> TeamEnemyKill ;
     }
 
     public enum TeamColor
