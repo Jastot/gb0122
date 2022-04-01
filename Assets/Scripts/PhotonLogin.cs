@@ -5,8 +5,11 @@ using Data;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
+using PlayFab;
+using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using WebSocketSharp;
 
@@ -50,6 +53,7 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     private void Awake()
     {
         _profileManager = GetComponent<ProfileManager>();
+        _roomInfos = new List<RoomInfo>();
         _listElementPrefab = Resources.Load<GameObject>("listElementPrefab");
         PhotonNetwork.AutomaticallySyncScene = true;
         _tmpTextPlayerMax.text = "1";
@@ -278,5 +282,11 @@ public class PhotonLogin : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.LeaveLobby();
         Application.Quit();
+    }
+
+    public void LogoutPlayFab()
+    {
+        PhotonNetwork.LeaveLobby();
+        SceneManager.LoadScene("Bootstrap");
     }
 }

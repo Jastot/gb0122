@@ -6,9 +6,10 @@ namespace Data
     {
         public GameController.PlayerState WinOrLoose;
         public TeamColor WinTeamColor;
-        public int KillEnemy;
-        public int KillPlayers;
-        public int Exp;
+        public int playerNum;
+        public Dictionary<int,int> KillEnemy;
+        public Dictionary<int,int> KillPlayers;
+        public Dictionary<int,int> Exp;
 
         public List<int> TeamEnemyKill ;
     }

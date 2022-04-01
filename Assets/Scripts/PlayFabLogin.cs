@@ -69,7 +69,8 @@ public class PlayFabLogin : MonoBehaviour
             SceneManager.LoadScene("MainProfile");
         }, OnFailure);
     }
-
+    
+    
     private void Start()
     {
         if (string.IsNullOrEmpty(PlayFabSettings.staticSettings.TitleId))
@@ -77,7 +78,7 @@ public class PlayFabLogin : MonoBehaviour
             PlayFabSettings.staticSettings.TitleId = "5EE75";
             Debug.Log("Title ID was installed");
         }
-
+        PlayerPrefs.DeleteAll();
         if (PlayerPrefs.HasKey(PlayFabUsernameForAuthKey) && PlayerPrefs.HasKey(PlayFabPasswordForAuthKey))
         {
             loadingPanel.SetActive(true);

@@ -22,6 +22,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
     private CharacterControl _mainCharacterController;
     private MatchStatistics _matchStatistics;
     private List<CharacterControl> _playerList;
+    private int countOfPlayers;
     private PhotonLogin.GameType _gameType;
     public event Action EndOfGame;
 
@@ -47,6 +48,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         _matchStatistics.TeamEnemyKill.Add(0);
         _matchStatistics.TeamEnemyKill.Add(0);
         _matchStatistics.WinTeamColor = TeamColor.None;
+        _charactersLocalData.BattleResult.GainedExp = 0;
         _gameType = (PhotonLogin.GameType) PhotonNetwork.CurrentRoom.CustomProperties["GameType"];
         _uiSystem.StartGameUI.SetStartText(_gameType);
     }
@@ -55,18 +57,29 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
     {
         
         var allCharacterControllers = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
+        var c = 0;
         foreach (var controller in allCharacterControllers)
         {
+            _matchStatistics.KillEnemy = new Dictionary<int,int>();
+            _matchStatistics.KillPlayers = new Dictionary<int,int>();
+            _matchStatistics.Exp = new Dictionary<int,int>();
             if (controller.photonView.IsMine)
             {
+                _matchStatistics.playerNum = controller.photonView.ViewID;
+                _matchStatistics.KillEnemy.Add(_matchStatistics.playerNum,0);
+                _matchStatistics.KillPlayers .Add(_matchStatistics.playerNum,0);
+                _matchStatistics.Exp.Add(_matchStatistics.playerNum,0);
                 _mainCharacterController = controller;
                 _mainCharacterController.photonView.RPC("SetTeamOrOffIt", RpcTarget.All,
                     (int)
                     PhotonNetwork.CurrentRoom.CustomProperties["GameType"]);
             }
+
+            c++;
         }
 
         _playerList = FindObjectsOfType<MonoBehaviour>().OfType<CharacterControl>().ToList();
+        countOfPlayers = _playerList.Count;
         foreach (var player in _playerList)
         {
             if (!player.photonView.IsMine)
@@ -81,6 +94,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         _matchStatistics.WinOrLoose = PlayerState.Waiting;
     }
 
+    private bool flag = true;
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -93,15 +107,21 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         {
             _timeController.StopTimer();
         }
+
+        if (countOfLinks == countOfPlayers && flag)
+        {
+            flag = false;
+            Calculate();
+        }
     }
 
     private void GetSomeExp(int exp, CharacterData characterData)
     {
         bool isNotEnemy = characterData.GetComponent<CharacterControl>();
         if (isNotEnemy)
-            _matchStatistics.KillPlayers++;
+            _matchStatistics.KillPlayers[_matchStatistics.playerNum]++;
         else
-            _matchStatistics.KillEnemy++;
+            _matchStatistics.KillEnemy[_matchStatistics.playerNum]++;
         _charactersLocalData.BattleResult.GainedExp += exp;
     }
 
@@ -150,7 +170,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         _playerList.Remove(data.GetComponent<CharacterControl>());
         if (_playerList.Count == 1)
             StartCoroutine(MakeTheEndOfGame(GameEndState.AllPlayersDead));
-        List<int> tuple = new List<int>() {0, 0, 0};
+        /*List<int> tuple = new List<int>() {0, 0, 0};
         foreach (var player in _playerList)
         {
             switch (player.IsThisCharacterAttractable)
@@ -175,12 +195,123 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
                 StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 1));
             if (tuple[1] == 0)
                 StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 0));
-        }
+        }*/
     }
 
+    public static int getMax(Dictionary<int,int> inputArray, out int index){ 
+        
+        var indexs = inputArray.Keys.ToList();
+        int maxValue = inputArray[indexs[0]];
+        index = 0;
+        for(int i=1;i < inputArray.Count;i++){ if(inputArray[indexs[i]] > maxValue){ 
+                maxValue = inputArray[indexs[i]];
+                index = indexs[i];
+            } 
+        } 
+        return maxValue; 
+    }
+
+    private int countOfLinks = 0;
+    private GameEndState _gameEndState;
+    
+    [PunRPC]
+    public void LinkWithMaster(int index, int enemyKill,int playerKill, int exp, int gameend)
+    {
+        Debug.Log("hmm");
+        if (!_matchStatistics.KillEnemy.ContainsKey(index))
+            _matchStatistics.KillEnemy.Add(index,enemyKill);
+        else
+            _matchStatistics.KillEnemy[index] = enemyKill;
+        if (!_matchStatistics.KillPlayers.ContainsKey(index))
+            _matchStatistics.KillPlayers.Add(index,playerKill);
+        else
+            _matchStatistics.KillPlayers[index] = playerKill;
+        if (!_matchStatistics.Exp.ContainsKey(index))
+            _matchStatistics.Exp.Add(index, exp);
+        else
+            _matchStatistics.Exp[index] = exp;
+        countOfLinks++;
+        _gameEndState = (GameEndState)gameend;
+    }
+    private void Calculate()
+    {
+        switch (_gameEndState)
+        {
+            case GameEndState.EnemiesDead:
+                if (_gameType == PhotonLogin.GameType.TwoTeams)
+                {
+                    if (_matchStatistics.TeamEnemyKill[0]>_matchStatistics.TeamEnemyKill[1])
+                    {
+                        gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.All, 0);
+                    }
+                    else
+                    {
+                        gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.All, 1);
+                    }
+                }
+
+                if (_gameType == PhotonLogin.GameType.HateAll)
+                {
+                    getMax(_matchStatistics.KillEnemy, out var index);
+                    gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.All,index);
+                }
+        
+                if (_gameType == PhotonLogin.GameType.COOP)
+                {
+                    gameObject.GetPhotonView().RPC("COOPWin", RpcTarget.All);
+                }
+                break;
+        }
+        
+    }
+
+    [PunRPC]
+    public void EndGameLoose(int index)
+    {
+        if (_matchStatistics.playerNum == index)
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Win;
+            AddScoreOfUser();
+        }
+        else
+            _matchStatistics.WinOrLoose = PlayerState.Loose;
+        ShowUIWithInfo();
+    }
+    
+    [PunRPC]
+    public void COOPWin()
+    {
+        _matchStatistics.WinOrLoose = PlayerState.Win;
+        AddScoreOfUser();
+        ShowUIWithInfo();
+    }
+
+    [PunRPC]
+    public void EndGameWinTeam(int color)
+    {
+        if (_mainCharacterController.IsThisCharacterAttractable == color)
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Win;
+            AddScoreOfUser();
+        }
+        else
+        {
+            _matchStatistics.WinOrLoose = PlayerState.Loose;
+        }
+        _matchStatistics.WinTeamColor = (TeamColor) color;
+        ShowUIWithInfo();
+    }
+    
+    
     private IEnumerator MakeTheEndOfGame(GameEndState gameEndState)
     {
-        yield return new WaitForSeconds(1);
+        photonView.RPC("LinkWithMaster",RpcTarget.MasterClient,
+            _matchStatistics.playerNum,
+            _matchStatistics.KillEnemy[_matchStatistics.playerNum],
+            _matchStatistics.KillPlayers[_matchStatistics.playerNum],
+            _matchStatistics.Exp[_matchStatistics.playerNum],
+            (int)gameEndState);
+        yield return new WaitForSeconds(2);
         switch (gameEndState)
         {
             case GameEndState.PlayerDead:
@@ -191,58 +322,65 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
 
                 ShowUIWithInfo();
                 break;
-            case GameEndState.EnemiesDead:
-                if (_gameType != PhotonLogin.GameType.TwoTeams)
+        }
+        /*  case GameEndState.EnemiesDead:
+              if (_gameType != PhotonLogin.GameType.TwoTeams)
+              {
+                  if (_gameType == PhotonLogin.GameType.COOP)
+                  {
+                     // AddScoreOfUser();
+                      //_matchStatistics.WinOrLoose = PlayerState.Win;
+                      gameObject.GetPhotonView().RPC("COOPWin", RpcTarget.MasterClient);
+                  }
+                  else
+                  {
+                    // AddScoreOfUser();
+                  //getMax(_matchStatistics.KillEnemy, out var index);
+                  //if (_matchStatistics.playerNum == index)
+                  //{
+                   //_matchStatistics.WinOrLoose = PlayerState.Win;
+                  gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.MasterClient);
+                  /*}
+                  else
+                  {
+                   _matchStatistics.WinOrLoose = PlayerState.Loose;
+                  }#1#
+                  }
+                  ShowUIWithInfo();
+
+              }
+              else
+              {
+                if (_matchStatistics.TeamEnemyKill[0]>_matchStatistics.TeamEnemyKill[1])
                 {
-                    if (_gameType == PhotonLogin.GameType.COOP)
-                    {
-                        AddScoreOfUser();
-                        _matchStatistics.WinOrLoose = PlayerState.Win;
-                        gameObject.GetPhotonView().RPC("COOPWin", RpcTarget.Others);
-                    }
-                    else
-                    {
-                        AddScoreOfUser();
-                        if (_matchStatistics.KillEnemy >=
-                            (_enemySpawner.StartCountOfEnemies / 2))
-                        {
-                            _matchStatistics.WinOrLoose = PlayerState.Win;
-                            gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.Others);
-                        }
-                        else
-                        {
-                            _matchStatistics.WinOrLoose = PlayerState.Loose;
-                        }
-                    }
-                    ShowUIWithInfo();
+                    gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.MasterClient, 0);
                 }
                 else
                 {
-                    if (_matchStatistics.TeamEnemyKill[0]>_matchStatistics.TeamEnemyKill[1])
-                    {
-                        StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 0));
-                    }
-                    else
-                    {
-                        StartCoroutine(MakeTheEndOfGame(GameEndState.COOPDead, 1));
-                    }
-                    
+                    gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.MasterClient, 1);
                 }
-                break;
-            case GameEndState.AllPlayersDead:
-                AddScoreOfUser();
-                _matchStatistics.WinOrLoose = PlayerState.Win;
-                gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.Others);
-                ShowUIWithInfo();
-                break;
-        }
+                                
+              }
+              break;
+          case GameEndState.AllPlayersDead:
+              /*AddScoreOfUser();
+              _matchStatistics.WinOrLoose = PlayerState.Win;
+              gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.MasterClient);
+              ShowUIWithInfo();#1#
+              gameObject.GetPhotonView().RPC("EndGameLoose", RpcTarget.MasterClient);
+              break;
+      }*/
     }
 
-
-
+  
+    /*
     private IEnumerator MakeTheEndOfGame(GameEndState gameEndState, int command)
     {
-        Debug.Log("2 teams");
+        photonView.RPC("LinkWithOthers",RpcTarget.MasterClient,
+            _matchStatistics.playerNum,
+            _matchStatistics.KillEnemy[_matchStatistics.playerNum],
+            _matchStatistics.KillPlayers[_matchStatistics.playerNum],
+            _matchStatistics.Exp[_matchStatistics.playerNum]);
         yield return new WaitForSeconds(1);
         _matchStatistics.WinTeamColor = (TeamColor) command;
         gameObject.GetPhotonView().RPC("EndGameWinTeam", RpcTarget.All, command);
@@ -250,10 +388,12 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         {
             _matchStatistics.WinOrLoose = PlayerState.Win;
             AddScoreOfUser();
-        }*/
+        }#1#
         //ShowUIWithInfo();
     }
+    */
 
+ 
     private void ShowUIWithInfo()
     {
         _uiSystem.EndGameUI.SetEndText(_matchStatistics, _gameType);
@@ -262,7 +402,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
 
     private void AddScoreOfUser()
     {
-        _matchStatistics.Exp = _charactersLocalData.BattleResult.GainedExp;
+        _matchStatistics.Exp[_matchStatistics.playerNum] = _charactersLocalData.BattleResult.GainedExp;
         UpdateCharacterAfterGame();
     }
 
@@ -303,7 +443,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
                 {"Level", newLevel},
                 {"Exp", newExp}
             }
-        }, result => { _charactersLocalData.BattleResult.GainedExp = 0; }, Debug.LogError);
+        }, result => {  }, Debug.LogError);
     }
 
     public void Resume()
@@ -326,36 +466,7 @@ public class GameController : MonoBehaviourPunCallbacks,IPunObservable
         Application.Quit();
     }
 
-    [PunRPC]
-    public void EndGameLoose()
-    {
-        _matchStatistics.WinOrLoose = PlayerState.Loose;
-        ShowUIWithInfo();
-    }
     
-    [PunRPC]
-    public void COOPWin()
-    {
-        _matchStatistics.WinOrLoose = PlayerState.Win;
-        AddScoreOfUser();
-        ShowUIWithInfo();
-    }
-
-    [PunRPC]
-    public void EndGameWinTeam(int color)
-    {
-        if (_mainCharacterController.IsThisCharacterAttractable == color)
-        {
-            _matchStatistics.WinOrLoose = PlayerState.Win;
-            AddScoreOfUser();
-        }
-        else
-        {
-            _matchStatistics.WinOrLoose = PlayerState.Loose;
-        }
-        _matchStatistics.WinTeamColor = (TeamColor) color;
-        ShowUIWithInfo();
-    }
 
     public override void OnLeftRoom()
     {

@@ -92,22 +92,22 @@ namespace UI
                     {
                         case PhotonLogin.GameType.COOP:
                             endFraze += "Статистика матча:\n" +
-                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
-                                        $"Опыта получено: {matchStatistics.Exp}";
+                                        $"Противников убито: {matchStatistics.KillEnemy[matchStatistics.playerNum]}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp[matchStatistics.playerNum]}";
                             break;
                         case PhotonLogin.GameType.TwoTeams:
                             endFraze += $"{teamColor} доминирует!:\n" +
                                         "Статистика матча:\n" +
-                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
-                                        $"Игроков убито: {matchStatistics.KillPlayers}\n" +
-                                        $"Опыта получено: {matchStatistics.Exp}";
+                                        $"Противников убито: {matchStatistics.KillEnemy[matchStatistics.playerNum]}\n" +
+                                        $"Игроков убито: {matchStatistics.KillPlayers[matchStatistics.playerNum]}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp[matchStatistics.playerNum]}";
                             
                             break;
                         case PhotonLogin.GameType.HateAll:
                             endFraze += "Статистика матча:\n" +
-                                        $"Противников убито: {matchStatistics.KillEnemy}\n" +
-                                        $"Игроков убито: {matchStatistics.KillPlayers}\n" +
-                                        $"Опыта получено: {matchStatistics.Exp}";
+                                        $"Противников убито: {matchStatistics.KillEnemy[matchStatistics.playerNum]}\n" +
+                                        $"Игроков убито: {matchStatistics.KillPlayers[matchStatistics.playerNum]}\n" +
+                                        $"Опыта получено: {matchStatistics.Exp[matchStatistics.playerNum]}";
                             break;
                     }
 
